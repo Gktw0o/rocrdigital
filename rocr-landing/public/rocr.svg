@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="c" cx="12%" cy="60%" r="60%">
+      <stop offset="0%" stop-color="#00b7ff"/>
+      <stop offset="70%" stop-color="#00b7ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="p" cx="55%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#a020f0"/>
+      <stop offset="70%" stop-color="#a020f0" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="o" cx="88%" cy="62%" r="60%">
+      <stop offset="0%" stop-color="#ff7a00"/>
+      <stop offset="70%" stop-color="#ff7a00" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="invert">
+      <feColorMatrix type="matrix" values="
+        -1 0 0 0 1
+         0 -1 0 0 1
+         0  0 -1 0 1
+         0  0  0 1 0"/>
+    </filter>
+    <mask id="m" maskUnits="userSpaceOnUse">
+      <image href="./mask-logo.svg" width="1920" height="1080" filter="url(#invert)"/>
+    </mask>
+  </defs>
+
+  <g mask="url(#m)">
+    <rect width="1920" height="1080" fill="url(#c)"/>
+    <rect width="1920" height="1080" fill="url(#p)"/>
+    <rect width="1920" height="1080" fill="url(#o)"/>
+  </g>
+</svg>
