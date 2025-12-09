@@ -8,6 +8,7 @@ import { useTheme } from "./context/ThemeContext";
 import Hero from "./components/Hero";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
+import Services from "./components/Services";
 
 
 const App = () => {
@@ -16,6 +17,7 @@ const App = () => {
     theme === "light"
     ? ["#57bfff", "#c08cf7", "#ff9b49"]
     : ["#00b7ff", "#a020f0", "#ff7a00"];
+  const showScrim = theme === "dark";
 
   return (
     <>
@@ -36,12 +38,21 @@ const App = () => {
           colors={bendColors}
         />
       </div>
-      <main className="pt-24">
+
+      {showScrim && (
+        <div
+          className="readebility-scrim fixed inset-0 z-[1] pointer-events-none"
+          aria-hidden="true" 
+        />
+      )}  
+
+      <main className="relative z-10 pt-24">
         <Navbar />
-        <Hero />
+        <Hero title="Your Digital Agency"/>
+        <Services />
         <Contact />
+        <Footer />
       </main>
-      <Footer />
     </>
   )
 }
