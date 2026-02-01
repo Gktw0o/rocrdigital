@@ -29,11 +29,6 @@ const Navbar = () => {
             ? "text-black/70 hover:text-black transition-colors"
             : "text-white/80 hover:text-white transition-colors";
 
-    const actionBtnClass =
-        theme === "light"
-            ? "bg-black/90 text-white hover:bg-black"
-            : "bg-white/90 text-black hover:bg-white";
-
     const iconBtnClass =
         theme === "light"
             ? "rounded-full border border-black/20 p-2 text-black/80 hover:text-black hover:border-black/40 transition-colors"
@@ -97,8 +92,8 @@ const Navbar = () => {
                         <button 
                             type="button"
                             aria-label="Toggle Menu"
-                            aria-expended={open}
-                            onClock={() => setOpen((v) => !v)}
+                            aria-expanded={open}
+                            onClick={() => setOpen((v) => !v)}
                             className={iconBtnClass}
                         >
                             <svg
@@ -120,7 +115,7 @@ const Navbar = () => {
                 </div>
 
                 {open && (
-                    <div className='md:hidden mt-2 ${mobilePanelClass}'>
+                    <div className={`md:hidden mt-2 ${mobilePanelClass}`}>
                         <ul className="flex flex-col gap-2">
                             {NAV_LINKS.map((link) => (
                                 <li key={link.href}>

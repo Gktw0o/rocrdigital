@@ -1,17 +1,38 @@
-import React from "react";
-import TitleGraphic from "./components/TitleGraphic";
+import React, { useEffect, useRef } from "react";
+import Lenis from "lenis";
 import Navbar from "./components/Navbar";
-import TextPressure from "./components/TextPressure";
 import ColorBends from "./components/ColorBends";
-import BlurText from "./components/BlurText";
 import { useTheme } from "./context/ThemeContext";
 import Hero from "./components/Hero";
+import Partners from "./components/Partners";
+import Services from "./components/Services";
+import About from "./components/About";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
-import Services from "./components/Services";
+import FadeIn from "./components/FadeIn";
 
 
 const App = () => {
+  const lenisRef = useRef(null);
+
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+    });
+    lenisRef.current = lenis;
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+
+    return () => {
+      lenis.destroy();
+    };
+  }, []);
   const { theme } = useTheme();
   const bendColors =
     theme === "light"
@@ -49,8 +70,23 @@ const App = () => {
       <main className="relative z-10 pt-24">
         <Navbar />
         <Hero title="Your Digital Agency"/>
-        <Services />
-        <Contact />
+
+        <FadeIn delay={0.1}>
+          <Partners />
+        </FadeIn>
+
+        <FadeIn delay={0.1}>
+          <Services />
+        </FadeIn>
+
+        <FadeIn delay={0.1}>
+          <About />
+        </FadeIn>
+
+        <FadeIn delay={0.1}>
+          <Contact />
+        </FadeIn>
+
         <Footer />
       </main>
     </>

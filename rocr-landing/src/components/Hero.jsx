@@ -10,7 +10,7 @@ function Hero({ title = "Your Digital Agency" }) {
       {/* Foreground headline */}
       <h1
         className="font-regular tracking-tight text-[clamp(1.5rem,6vw,3.25rem)] leading-[1.05]"
-        style={{ fontFamily: 'var(--font-regular)', textColor: 'var(--text)', color: 'var(--text)', textShadow: '0 2px 10px rgba(0,0,0,0.08),' + '0 0 10px rgba(0,183,255,0.15),' + '0 0 16px rgba(160,32,240,0.12)' }}
+        style={{ fontFamily: 'var(--font-regular)', color: 'var(--text)', textShadow: '0 2px 10px rgba(0,0,0,0.08), 0 0 10px rgba(0,183,255,0.15), 0 0 16px rgba(160,32,240,0.12)' }}
       >
         {title}
       </h1>
