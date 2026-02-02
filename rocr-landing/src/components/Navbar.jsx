@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 
 const NAV_LINKS = [
-    { label: "Home", href: "#home" },
-    { label: "Partners", href: "#partners" },
-    { label: "Services", href: "#services" },
-    { label: "About", href: "#about" },
-    { label: "Contact", href: "#contact" },
+    { label: "Home", to: "/" },
+    { label: "Partners", to: "/partners" },
+    { label: "Services", to: "/services" },
+    { label: "About", to: "/about" },
+    { label: "Contact", to: "/contact" },
 ];
 
 const Navbar = () => {
     const [open, setOpen] = useState(false);
-    const { theme, toggleTheme} = useTheme();
+    const { theme, toggleTheme } = useTheme();
+    const location = useLocation();
     const logoSrc = theme === "light" ? "/logo-v3-black.svg" : "/logo-v3-white.svg";
 
     useEffect(() => {
@@ -19,15 +21,25 @@ const Navbar = () => {
         document.documentElement.setAttribute("data-theme", theme);
     }, [theme]);
 
+    // Close mobile menu on route change
+    useEffect(() => {
+        setOpen(false);
+    }, [location.pathname]);
+
     const containerClass =
         theme === "light"
             ? "border border-black/10 bg-white/70 shadow-sm"
             : "border border-white/10 bg-black/30";
 
-    const LinkClass =
+    const linkClass =
         theme === "light"
             ? "text-black/70 hover:text-black transition-colors"
             : "text-white/80 hover:text-white transition-colors";
+
+    const activeLinkClass =
+        theme === "light"
+            ? "text-black font-semibold"
+            : "text-white font-semibold";
 
     const iconBtnClass =
         theme === "light"
@@ -43,7 +55,7 @@ const Navbar = () => {
         theme === "light"
             ? "block rounded-xl px-3 py-2 text-black/80 hover:bg-black/5 hover:text-black transition-colors"
             : "block rounded-xl px-3 py-2 text-white/90 hover:bg-white/10 hover:text-white transition-colors";
-    
+
     const mobileCtaClass =
         theme === "light"
             ? "block rounded-xl bg-black text-white px-3 py-2 text-center font-semibold"
@@ -53,16 +65,19 @@ const Navbar = () => {
         <header className="fixed top-0 left-0 right-0 z-50">
             <nav aria-label="Main" className="mx-auto max-w-6xl px-4">
                 <div className={`mt-4 flex items-center justify-between rounded-full backdrop-blur-md px-4 py-2 ${containerClass}`}>
-                    <a href="#" className="flex items-center gap-2">
+                    <Link to="/" className="flex items-center gap-2">
                         <img src={logoSrc} alt="ROCR Digital" className="h-10 w-auto" />
-                    </a>
+                    </Link>
 
                     <ul className="hidden md:flex items-center gap-6">
                         {NAV_LINKS.map((link) => (
-                            <li key={link.href}>
-                                <a href={link.href} className={LinkClass}>
+                            <li key={link.to}>
+                                <Link
+                                    to={link.to}
+                                    className={location.pathname === link.to ? activeLinkClass : linkClass}
+                                >
                                     {link.label}
-                                </a>
+                                </Link>
                             </li>
                         ))}
                     </ul>
@@ -71,17 +86,15 @@ const Navbar = () => {
                         <button
                             type="button"
                             aria-label="Toggle Theme"
-                            onClick={() => toggleTheme((t) => (t === "light" ? "dark" : "light"))}
+                            onClick={() => toggleTheme()}
                             className={iconBtnClass}
                             title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
                         >
                             {theme === "light" ? (
-                                // ay iconu
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                                     <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
                             ) : (
-                                // güneş iconu
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                                     <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2" />
                                     <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -89,12 +102,12 @@ const Navbar = () => {
                             )}
                         </button>
 
-                        <button 
+                        <button
                             type="button"
                             aria-label="Toggle Menu"
                             aria-expanded={open}
                             onClick={() => setOpen((v) => !v)}
-                            className={iconBtnClass}
+                            className={`md:hidden ${iconBtnClass}`}
                         >
                             <svg
                                 width="20"
@@ -109,7 +122,7 @@ const Navbar = () => {
                                     strokeWidth="2"
                                     strokeLinecap="round"
                                 />
-                            </svg>                                
+                            </svg>
                         </button>
                     </div>
                 </div>
@@ -118,24 +131,22 @@ const Navbar = () => {
                     <div className={`md:hidden mt-2 ${mobilePanelClass}`}>
                         <ul className="flex flex-col gap-2">
                             {NAV_LINKS.map((link) => (
-                                <li key={link.href}>
-                                    <a
-                                        href={link.href}
-                                        onClick={() => setOpen(false)}
+                                <li key={link.to}>
+                                    <Link
+                                        to={link.to}
                                         className={mobileLinkClass}
                                     >
                                         {link.label}
-                                    </a>
+                                    </Link>
                                 </li>
                             ))}
                             <li className="pt-2">
-                                <a
-                                    href="#get-started"
-                                    onClick={() => setOpen(false)}
+                                <Link
+                                    to="/contact"
                                     className={mobileCtaClass}
                                 >
                                     Get Started
-                                </a>
+                                </Link>
                             </li>
                         </ul>
                     </div>

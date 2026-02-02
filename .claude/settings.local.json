@@ -4,7 +4,8 @@
       "Bash(dir \"C:\\\\Users\\\\overt\\\\OneDrive\\\\Documents\\\\GitHub\\\\rocrdigital\\\\rocr-landing\\\\node_modules\\\\motion\" /b)",
       "Bash(npm run build:*)",
       "Bash(bun run build)",
-      "Bash(bun run lint:*)"
+      "Bash(bun run lint:*)",
+      "Bash(bun add:*)"
     ]
   }
 }

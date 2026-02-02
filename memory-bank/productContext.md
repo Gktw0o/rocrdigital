@@ -20,19 +20,35 @@ ROCR Digital needs a public website that reflects its identity as a cutting-edge
 8. Performance & SEO
 9. Support & Growth
 
+## Site Structure
+
+### Current: Single Landing Page
+All content on one page with anchor-based section navigation.
+
+### Planned: Multi-Page Application
+| Route | Page | Description |
+|-------|------|-------------|
+| `/` | Home | Landing page — Hero, Partners carousel, Services grid, About summary, Contact info, Footer |
+| `/partners` | Partners | Partner detaylari, case study'ler, isbirligi bilgileri, logo galeri |
+| `/services` | Services | 9 servisin genisletilmis aciklamalari, ozellikler, CTA'lar |
+| `/about` | About | Takim tanitimi, misyon/vizyon, degerler, sirket hikayesi, ofis bilgileri |
+| `/contact` | Contact | Iletisim formu, harita entegrasyonu, adres, sosyal medya, calisma saatleri |
+| `/site-map` | Site Map | Tum sayfa ve alt-sayfalarin HTML haritasi (SEO icin) |
+
 ## How It Should Work
-- Visitors land on the page and immediately see the ColorBends WebGL shader animation as background
-- Navbar provides navigation links (Home, Partners, Services, About, Contact) with a theme toggle
-- Hero section displays the agency tagline "Your Digital Agency" with decorative TitleGraphic ("Designed for the Future.")
-- Services section presents a 3x3 grid of service cards
-- Contact section shows corporate address, frequently requested info, and feedback options
-- Footer contains link groups (Shop and Learn, Account, Store, For Business, Values, About), disclaimers, and legal links
+- Visitors land on the homepage and immediately see the ColorBends WebGL shader animation as background
+- Navbar provides navigation to all pages via React Router links + theme toggle
+- Landing page showcases each capability briefly with "Learn more" links to dedicated pages
+- Dedicated pages provide in-depth information for each topic
+- ColorBends background persists across all pages (shared layout)
 - Dark/Light theme toggle persists across sessions via localStorage
+- Smooth scrolling via Lenis on all pages
 
 ## User Experience Goals
 - **First Impression:** Visually striking, premium feel with animated background
 - **Performance:** Smooth 60fps animations, fast initial load
 - **Readability:** Clear typography hierarchy, proper contrast in both themes
-- **Navigation:** Simple, intuitive single-page scroll with anchor links
+- **Navigation:** Multi-page with clear route structure, landing page maintains scroll experience
 - **Accessibility:** Screen reader friendly, keyboard navigable
 - **Responsive:** Seamless experience from mobile to desktop
+- **SEO:** Dedicated pages for each topic improve search visibility

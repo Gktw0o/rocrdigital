@@ -1,12 +1,14 @@
 # System Patterns — ROCR Digital
 
 ## Architecture
-Single-page React application with component-based architecture. No routing library — navigation uses anchor links for in-page scrolling. Lenis handles smooth scroll behavior.
+
+### Current: Single-Page Application
+Landing page with all sections in one page, anchor-based navigation, Lenis smooth scroll.
 
 ```
 main.jsx → ThemeProvider → App.jsx (+ Lenis smooth scroll)
   ├── ColorBends (fixed background, z-0)
-  ├── Readability Scrim (dark mode only, z-1)
+  ├── Readability Scrim (dark mode only, z-1) ← BUG: no styling applied
   └── <main> (z-10)
       ├── Navbar (fixed, z-50)
       ├── Hero
@@ -15,6 +17,53 @@ main.jsx → ThemeProvider → App.jsx (+ Lenis smooth scroll)
       ├── FadeIn → About (stats + values)
       ├── FadeIn → Contact
       └── Footer
+```
+
+### Planned: Multi-Page with React Router
+```
+main.jsx → BrowserRouter → ThemeProvider → App.jsx
+  └── Routes
+      ├── MainLayout (Navbar + ColorBends + Scrim + Footer)
+      │   ├── / → HomePage (mevcut landing page)
+      │   ├── /partners → PartnersPage
+      │   ├── /services → ServicesPage
+      │   ├── /about → AboutPage
+      │   ├── /contact → ContactPage
+      │   └── /site-map → SiteMapPage
+      └── 404 → NotFound (optional)
+```
+
+### Planned File Structure
+```
+src/
+├── pages/                  # Route-level page components
+│   ├── HomePage.jsx        # Mevcut landing content
+│   ├── PartnersPage.jsx    # /partners
+│   ├── ServicesPage.jsx    # /services
+│   ├── AboutPage.jsx       # /about
+│   ├── ContactPage.jsx     # /contact
+│   └── SiteMapPage.jsx     # /site-map
+├── layouts/
+│   └── MainLayout.jsx      # Shared: Navbar + ColorBends + Scrim + <Outlet/> + Footer
+├── components/             # Reusable section & UI components
+│   ├── FadeIn.jsx
+│   ├── Partners.jsx        # Section component (reusable in HomePage & PartnersPage)
+│   ├── Services.jsx
+│   ├── About.jsx
+│   ├── Contact.jsx
+│   ├── Hero.jsx
+│   ├── ColorBends.jsx
+│   ├── LogoLoop.jsx
+│   └── ...
+├── context/
+│   └── ThemeContext.jsx
+├── config/
+│   └── site.js
+├── lib/
+│   └── utils.js
+├── main.jsx                # BrowserRouter entry point
+├── App.jsx                 # Routes + Lenis init
+└── index.css
 ```
 
 ## Key Technical Decisions
@@ -27,68 +76,65 @@ main.jsx → ThemeProvider → App.jsx (+ Lenis smooth scroll)
 - Default: dark mode
 - Every component receives theme via `useTheme()` hook and applies conditional classes
 
+### Routing (Planned)
+- **Library:** `react-router-dom` (v7+)
+- **Pattern:** `MainLayout` with `<Outlet />` for nested routes
+- **Navbar:** `<Link to="/path">` instead of `<a href="#anchor">`
+- **HomePage:** Landing page'deki anchor scroll davranisi korunacak
+- **Diger sayfalar:** Scroll-to-top on route change
+- **Lenis:** Route degisikliklerinde scroll pozisyonunu sifirla
+
 ### Styling Strategy
 - **Tailwind CSS 4** as primary styling tool (utility-first)
-- **Custom CSS utilities** defined in `index.css` (`flex-center`, `flex-between`, `col-center`, `abs-center`, `h3-semibold`, `base-semibold`, `small-medium`)
+- **Custom CSS utilities** defined in `index.css`
 - **Custom CSS variables** for theme colors (`--bg`, `--text`, `--primary`, etc.)
-- **Shadcn/ui design tokens** (oklch color space) for component library compatibility
-- **Conditional class strings** — components build theme-specific class strings using ternary operators (not Tailwind's `dark:` variant)
+- **Shadcn/ui design tokens** (oklch color space)
+- **Conditional class strings** — ternary operators (not Tailwind's `dark:` variant)
 
 ### Animation Strategy
-- **FadeIn component:** Reusable wrapper using `motion/react` (Framer Motion v12). Supports directional entrance (up/down/left/right), configurable delay, duration, and viewport trigger threshold.
-- **Lenis:** Smooth scroll library initialized in App.jsx with exponential easing (duration 1.2s). Runs via `requestAnimationFrame` loop.
-- **Section animations:** Partners, Services, About, and Contact wrapped in `<FadeIn>` for scroll-triggered entrance.
+- **FadeIn component:** Reusable wrapper using `motion/react`. Supports directional entrance.
+- **Lenis:** Smooth scroll, initialized in App.jsx (or MainLayout).
+- **Section animations:** Content sections wrapped in `<FadeIn>`.
 
 ### Visual Effects Pipeline
-- **ColorBends:** Custom GLSL fragment shader rendered via Three.js WebGLRenderer. Full-screen fixed background with mouse-reactive color bending.
-- **TitleGraphic:** Multi-color radial gradient text with CSS `background-clip: text`
-- **LogoLoop:** Infinite scrolling logo carousel with configurable speed, direction, hover pause, and fade edges.
-- **Additional effects available:** BlurText, TextPressure, TextType, FluidGlass, GlassSurface, GradualBlur, Iridescence, LightRays, ScrollStack
+- **ColorBends:** Custom GLSL shader via Three.js. Fixed background in MainLayout — shared across all pages.
+- **TitleGraphic:** CSS `background-clip: text` gradient
+- **LogoLoop:** Infinite scrolling carousel
+- **Available but unused:** BlurText, TextPressure, FluidGlass, GlassSurface, Iridescence, LightRays, ScrollStack
 
 ### Component Patterns
-- Functional components with hooks only (no class components)
-- Props with defaults for data-driven content (services, contact info, footer links, partners, stats)
-- Theme-aware styling via `useTheme()` hook in every visual component
-- Inline SVG icons (no external icon library for nav icons)
-- `lucide-react` available for additional icons
-- Section `id` attributes match nav anchor links (`#partners`, `#services`, `#about`, `#contact`)
+- Functional components with hooks only
+- Props with defaults for data-driven content
+- Theme-aware styling via `useTheme()`
+- Section components are reusable — used both in HomePage sections and dedicated pages
+- Page components compose section components with additional page-specific content
 
 ## Component Relationships
 
 | Component | Depends On | Purpose |
 |-----------|-----------|---------|
-| App | ThemeContext, Lenis, all sections, FadeIn | Root layout, smooth scroll, composition |
-| Navbar | ThemeContext | Navigation + theme toggle |
+| App | ThemeContext, Lenis, React Router | Routes + smooth scroll |
+| MainLayout | Navbar, ColorBends, Footer | Shared page wrapper |
+| HomePage | Hero, Partners, Services, About, Contact, FadeIn | Landing page |
+| PartnersPage | Partners (section), FadeIn | Dedicated partners page |
+| ServicesPage | Services (section), FadeIn | Dedicated services page |
+| AboutPage | About (section), FadeIn | Dedicated about page |
+| ContactPage | Contact (section), FadeIn | Dedicated contact page |
+| SiteMapPage | ThemeContext | HTML sitemap |
+| Navbar | ThemeContext, React Router Link | Navigation + theme toggle |
 | Hero | ThemeContext, TitleGraphic | Main headline section |
-| TitleGraphic | CSS (index.css) | Gradient text decoration |
 | Partners | ThemeContext, LogoLoop | Partner logo carousel |
 | Services | ThemeContext | 9-card service grid |
 | About | ThemeContext | Company info, stats, values |
 | Contact | ThemeContext | Corporate info + feedback |
 | Footer | ThemeContext | Links, disclaimers, legal |
-| FadeIn | motion/react | Scroll-triggered entrance animation wrapper |
+| FadeIn | motion/react | Scroll-triggered animation wrapper |
 | ColorBends | Three.js | WebGL background animation |
-| LogoLoop | — (self-contained) | Infinite scrolling carousel |
-
-## File Organization
-```
-src/
-├── components/     # All React components (flat structure)
-│   ├── FadeIn.jsx         # Animation wrapper
-│   ├── Partners.jsx       # Partners section (new)
-│   ├── About.jsx          # About section (new)
-│   └── ...                # Other components
-├── context/        # React Context providers
-├── config/         # Site configuration constants
-├── lib/            # Utility functions (cn/clsx/tailwind-merge)
-├── main.jsx        # Entry point
-├── App.jsx         # Root component (Lenis init here)
-└── index.css       # Global styles, fonts, theme variables, utilities
-```
 
 ## Critical Implementation Paths
-1. **Theme Toggle Flow:** User clicks → `toggleTheme()` → state update → `useEffect` sets `data-theme` on `<html>` + saves to `localStorage` → all components re-render with new theme classes
-2. **ColorBends Render Loop:** `useEffect` creates Three.js scene → `requestAnimationFrame` loop → GLSL shader updates each frame with time, pointer position, rotation
-3. **Smooth Scroll:** App.jsx `useEffect` → `new Lenis()` → `requestAnimationFrame` loop → `lenis.raf(time)` each frame → cleanup on unmount
-4. **Scroll Animation:** `<FadeIn>` wraps section → `motion.div` with `whileInView` → triggers opacity + translate animation when section enters viewport
-5. **Responsive Layout:** Tailwind breakpoints (`sm:`, `md:`, `lg:`) control grid columns and spacing
+1. **Theme Toggle Flow:** User clicks → `toggleTheme()` → state update → `useEffect` sets `data-theme` → all components re-render
+2. **ColorBends Render Loop:** `useEffect` → Three.js scene → `requestAnimationFrame` loop → GLSL shader per frame
+3. **Smooth Scroll:** `new Lenis()` → `requestAnimationFrame` loop → cleanup on unmount
+4. **Scroll Animation:** `<FadeIn>` → `motion.div` with `whileInView` → viewport trigger
+5. **Route Navigation (planned):** `<Link>` click → React Router → `MainLayout` persists → `<Outlet>` swaps page content → scroll-to-top
+6. **Responsive Layout:** Tailwind breakpoints (`sm:`, `md:`, `lg:`)
