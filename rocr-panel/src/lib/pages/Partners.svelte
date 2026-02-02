@@ -116,8 +116,8 @@
   <!-- Edit/Create Modal -->
   <Modal bind:open={editOpen} title={editingPartner ? "Partner Duzenle" : "Yeni Partner"}>
     <div class="space-y-4">
-      <div>
-        <label class="mb-1 block text-xs font-medium" style="color: var(--text-secondary);">Partner Adi</label>
+      <label class="block text-xs font-medium" style="color: var(--text-secondary);">
+        <span class="mb-1 block">Partner Adi</span>
         <input
           type="text"
           bind:value={formData.name}
@@ -125,9 +125,9 @@
           class="w-full rounded-lg border px-3 py-2 text-sm outline-none"
           style="background: var(--bg); border-color: var(--border); color: var(--text);"
         />
-      </div>
-      <div>
-        <label class="mb-1 block text-xs font-medium" style="color: var(--text-secondary);">Aciklama</label>
+      </label>
+      <label class="block text-xs font-medium" style="color: var(--text-secondary);">
+        <span class="mb-1 block">Aciklama</span>
         <textarea
           bind:value={formData.description}
           placeholder="Partner aciklamasi"
@@ -135,11 +135,9 @@
           class="w-full rounded-lg border px-3 py-2 text-sm outline-none resize-none"
           style="background: var(--bg); border-color: var(--border); color: var(--text);"
         ></textarea>
-      </div>
-      <div>
-        <label class="mb-1 block text-xs font-medium" style="color: var(--text-secondary);">
-          Etiketler (virgul ile ayirin)
-        </label>
+      </label>
+      <label class="block text-xs font-medium" style="color: var(--text-secondary);">
+        <span class="mb-1 block">Etiketler (virgul ile ayirin)</span>
         <input
           type="text"
           bind:value={formData.tags}
@@ -147,7 +145,7 @@
           class="w-full rounded-lg border px-3 py-2 text-sm outline-none"
           style="background: var(--bg); border-color: var(--border); color: var(--text);"
         />
-      </div>
+      </label>
       <div class="flex justify-end gap-2 pt-2">
         <button
           onclick={() => (editOpen = false)}

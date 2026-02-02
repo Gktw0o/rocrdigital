@@ -1,16 +1,6 @@
-use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 use tauri::Manager;
-
-#[derive(Serialize, Deserialize, Clone)]
-struct AppData {
-    contacts: Vec<serde_json::Value>,
-    partners: Vec<serde_json::Value>,
-    services: Vec<serde_json::Value>,
-    content: serde_json::Value,
-    team: Vec<serde_json::Value>,
-}
 
 fn get_data_path(app: &tauri::AppHandle) -> PathBuf {
     let data_dir = app

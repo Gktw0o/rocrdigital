@@ -9,7 +9,13 @@
       "Bash(dir /s /b \"C:\\\\Users\\\\overt\\\\OneDrive\\\\Documents\\\\GitHub\\\\rocrdigital\\\\rocr-landing\")",
       "Bash(findstr:*)",
       "mcp__plugin_context7_context7__resolve-library-id",
-      "mcp__plugin_context7_context7__query-docs"
+      "mcp__plugin_context7_context7__query-docs",
+      "Bash(bun install:*)",
+      "Bash(bun run tauri:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(powershell -ExecutionPolicy Bypass -File \"C:\\\\Users\\\\overt\\\\OneDrive\\\\Documents\\\\GitHub\\\\rocrdigital\\\\rocr-panel\\\\src-tauri\\\\gen-icons.ps1\":*)",
+      "Bash(bun update:*)",
+      "Bash(bun info @tauri-apps/api)"
     ]
   }
 }

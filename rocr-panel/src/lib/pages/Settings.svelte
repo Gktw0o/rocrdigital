@@ -116,8 +116,8 @@
       <h3 class="text-base font-semibold" style="color: var(--text);">API Yapilandirmasi</h3>
     </div>
     <div class="space-y-3">
-      <div>
-        <label class="mb-1 block text-xs font-medium" style="color: var(--text-secondary);">API URL</label>
+      <label class="block text-xs font-medium" style="color: var(--text-secondary);">
+        <span class="mb-1 block">API URL</span>
         <input
           type="text"
           bind:value={apiUrl}
@@ -125,7 +125,7 @@
           class="w-full rounded-lg border px-3 py-2 text-sm outline-none"
           style="background: var(--bg); border-color: var(--border); color: var(--text);"
         />
-      </div>
+      </label>
       <div class="flex items-center justify-between">
         <div>
           <p class="text-sm font-medium" style="color: var(--text);">Otomatik Senkronizasyon</p>
@@ -135,6 +135,7 @@
           onclick={() => (autoSync = !autoSync)}
           class="relative h-6 w-11 rounded-full transition-colors cursor-pointer"
           style="background: {autoSync ? 'var(--color-primary)' : 'var(--border)'};"
+          aria-label="Otomatik Senkronizasyon"
         >
           <span
             class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform"

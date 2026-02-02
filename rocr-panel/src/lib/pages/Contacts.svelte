@@ -109,30 +109,30 @@
       <div class="space-y-4">
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="text-xs font-medium" style="color: var(--text-secondary);">Isim</label>
+            <span class="text-xs font-medium" style="color: var(--text-secondary);">Isim</span>
             <p class="text-sm font-medium" style="color: var(--text);">{selectedContact.name}</p>
           </div>
           <div>
-            <label class="text-xs font-medium" style="color: var(--text-secondary);">Email</label>
+            <span class="text-xs font-medium" style="color: var(--text-secondary);">Email</span>
             <p class="text-sm font-medium" style="color: var(--text);">{selectedContact.email}</p>
           </div>
           <div>
-            <label class="text-xs font-medium" style="color: var(--text-secondary);">Konu</label>
+            <span class="text-xs font-medium" style="color: var(--text-secondary);">Konu</span>
             <p class="text-sm font-medium" style="color: var(--text);">{selectedContact.subject}</p>
           </div>
           <div>
-            <label class="text-xs font-medium" style="color: var(--text-secondary);">Tarih</label>
+            <span class="text-xs font-medium" style="color: var(--text-secondary);">Tarih</span>
             <p class="text-sm font-medium" style="color: var(--text);">{formatDate(selectedContact.date)}</p>
           </div>
         </div>
         <div>
-          <label class="text-xs font-medium" style="color: var(--text-secondary);">Mesaj</label>
+          <span class="text-xs font-medium" style="color: var(--text-secondary);">Mesaj</span>
           <p class="mt-1 rounded-lg p-3 text-sm" style="background: var(--bg); color: var(--text);">
             {selectedContact.message}
           </p>
         </div>
         <div class="flex items-center gap-2">
-          <label class="text-xs font-medium" style="color: var(--text-secondary);">Durum:</label>
+          <span class="text-xs font-medium" style="color: var(--text-secondary);">Durum:</span>
           {#each ["unread", "read", "replied", "archived"] as status}
             <button
               onclick={() => updateStatus(selectedContact.id, status)}

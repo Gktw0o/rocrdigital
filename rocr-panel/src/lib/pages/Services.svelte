@@ -100,35 +100,33 @@
   <Modal bind:open={editOpen} title="Servis Duzenle">
     {#if editingService}
       <div class="space-y-4">
-        <div>
-          <label class="mb-1 block text-xs font-medium" style="color: var(--text-secondary);">Baslik</label>
+        <label class="block text-xs font-medium" style="color: var(--text-secondary);">
+          <span class="mb-1 block">Baslik</span>
           <input
             type="text"
             bind:value={formData.title}
             class="w-full rounded-lg border px-3 py-2 text-sm outline-none"
             style="background: var(--bg); border-color: var(--border); color: var(--text);"
           />
-        </div>
-        <div>
-          <label class="mb-1 block text-xs font-medium" style="color: var(--text-secondary);">Aciklama</label>
+        </label>
+        <label class="block text-xs font-medium" style="color: var(--text-secondary);">
+          <span class="mb-1 block">Aciklama</span>
           <textarea
             bind:value={formData.description}
             rows="3"
             class="w-full rounded-lg border px-3 py-2 text-sm outline-none resize-none"
             style="background: var(--bg); border-color: var(--border); color: var(--text);"
           ></textarea>
-        </div>
-        <div>
-          <label class="mb-1 block text-xs font-medium" style="color: var(--text-secondary);">
-            Ozellikler (her satira bir tane)
-          </label>
+        </label>
+        <label class="block text-xs font-medium" style="color: var(--text-secondary);">
+          <span class="mb-1 block">Ozellikler (her satira bir tane)</span>
           <textarea
             bind:value={formData.features}
             rows="4"
             class="w-full rounded-lg border px-3 py-2 text-sm outline-none resize-none"
             style="background: var(--bg); border-color: var(--border); color: var(--text);"
           ></textarea>
-        </div>
+        </label>
         <div class="flex justify-end gap-2 pt-2">
           <button
             onclick={() => (editOpen = false)}
