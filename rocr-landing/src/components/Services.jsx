@@ -6,55 +6,46 @@ const defaultServices = [
     title: "Strategy & Consulting",
     desc: "Positioning, roadmaps, and measurable outcomes aligned to your goals.",
     href: "#",
-    icon: "/feature-icon1.svg",
   },
   {
     title: "Brand & Identity",
     desc: "Logo systems, visual language, and guidelines to scale coherently.",
     href: "#",
-    icon: "/feature-icon2.svg",
   },
   {
     title: "Web Experiences",
     desc: "Modern websites and apps with React/Next.js, TypeScript, Tailwind.",
     href: "#",
-    icon: "/feature-icon3.svg",
   },
   {
     title: "AI & Automation",
     desc: "Workflows, agents, and data integrations to accelerate operations.",
     href: "#",
-    icon: "/feature-icon4.svg",
   },
   {
     title: "E‑commerce",
     desc: "Storefronts, subscriptions, and performance optimizations to convert.",
     href: "#",
-    icon: "/feature-icon5.svg",
   },
   {
     title: "Content Production",
     desc: "Art direction, video, and motion design for engaging narratives.",
     href: "#",
-    icon: "/logo.svg",
   },
   {
     title: "Cloud & DevOps",
     desc: "CI/CD, observability, security hardening, and cost‑efficient infra.",
     href: "#",
-    icon: "/logo-v3-white.svg",
   },
   {
     title: "Performance & SEO",
     desc: "Core Web Vitals, accessibility, and search visibility improvements.",
     href: "#",
-    icon: "/search.svg",
   },
   {
     title: "Support & Growth",
     desc: "Ongoing iteration, A/B testing, and data‑driven enhancements.",
     href: "#",
-    icon: "/ROCR Digital.png",
   },
 ];
 
@@ -97,18 +88,7 @@ export default function Services({ services = defaultServices }) {
               key={i}
               className={`group flex flex-col rounded-xl ${cardBg} transition-colors ring-1 ${ringClass} ring-inset p-4`}
             >
-              <div className="flex items-center gap-3">
-                {s.icon && (
-                  <img
-                    src={s.icon}
-                    alt=""
-                    aria-hidden="true"
-                    className="h-8 w-8 shrink-0 rounded-md object-contain opacity-90"
-                  />
-                )}
-                <h3 className={`text-sm font-semibold ${titleClass}`}>{s.title}</h3>
-              </div>
-
+              <h3 className={`text-sm font-semibold ${titleClass}`}>{s.title}</h3>
               <p className={`mt-2 text-sm ${descClass}`}>{s.desc}</p>
 
               <div className="mt-3">

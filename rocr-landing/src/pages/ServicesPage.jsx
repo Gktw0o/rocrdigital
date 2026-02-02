@@ -7,7 +7,6 @@ import FadeIn from "../components/FadeIn";
 const services = [
   {
     title: "Strategy & Consulting",
-    icon: "/feature-icon1.svg",
     desc: "Positioning, roadmaps, and measurable outcomes aligned to your goals.",
     details: [
       "Market research & competitive analysis",
@@ -18,7 +17,6 @@ const services = [
   },
   {
     title: "Brand & Identity",
-    icon: "/feature-icon2.svg",
     desc: "Logo systems, visual language, and guidelines to scale coherently.",
     details: [
       "Logo design & brand mark systems",
@@ -29,7 +27,6 @@ const services = [
   },
   {
     title: "Web Experiences",
-    icon: "/feature-icon3.svg",
     desc: "Modern websites and apps with React/Next.js, TypeScript, Tailwind.",
     details: [
       "Responsive web applications",
@@ -40,7 +37,6 @@ const services = [
   },
   {
     title: "AI & Automation",
-    icon: "/feature-icon4.svg",
     desc: "Workflows, agents, and data integrations to accelerate operations.",
     details: [
       "Custom AI chatbots & assistants",
@@ -51,7 +47,6 @@ const services = [
   },
   {
     title: "E-commerce",
-    icon: "/feature-icon5.svg",
     desc: "Storefronts, subscriptions, and performance optimizations to convert.",
     details: [
       "Shopify & custom storefront builds",
@@ -62,7 +57,6 @@ const services = [
   },
   {
     title: "Content Production",
-    icon: "/feature-icon1.svg",
     desc: "Art direction, video, and motion design for engaging narratives.",
     details: [
       "Video production & post-production",
@@ -73,7 +67,6 @@ const services = [
   },
   {
     title: "Cloud & DevOps",
-    icon: "/feature-icon2.svg",
     desc: "CI/CD, observability, security hardening, and cost-efficient infra.",
     details: [
       "AWS / GCP / Azure cloud architecture",
@@ -84,7 +77,6 @@ const services = [
   },
   {
     title: "Performance & SEO",
-    icon: "/feature-icon3.svg",
     desc: "Core Web Vitals, accessibility, and search visibility improvements.",
     details: [
       "Core Web Vitals optimization",
@@ -95,7 +87,6 @@ const services = [
   },
   {
     title: "Support & Growth",
-    icon: "/feature-icon4.svg",
     desc: "Ongoing iteration, A/B testing, and data-driven enhancements.",
     details: [
       "Monthly retainer & support plans",
@@ -148,17 +139,9 @@ export default function ServicesPage() {
       {services.map((service, i) => (
         <FadeIn key={i} delay={0.05 * i}>
           <div className={`p-6 sm:p-8 ${shell}`}>
-            <div className="flex items-start gap-4">
-              <img
-                src={service.icon}
-                alt=""
-                aria-hidden="true"
-                className="h-10 w-10 shrink-0 rounded-lg object-contain opacity-90"
-              />
-              <div className="flex-1">
-                <h2 className={`text-lg font-semibold ${titleClass}`}>{service.title}</h2>
-                <p className={`mt-1 text-sm ${descClass}`}>{service.desc}</p>
-              </div>
+            <div>
+              <h2 className={`text-lg font-semibold ${titleClass}`}>{service.title}</h2>
+              <p className={`mt-1 text-sm ${descClass}`}>{service.desc}</p>
             </div>
 
             <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">

@@ -1,61 +1,67 @@
 import React from "react";
 import SEO from "../components/SEO";
 import { useTheme } from "../context/ThemeContext";
-import { LogoLoop } from "../components/LogoLoop";
+import InfiniteLogoScroll from "../components/InfiniteLogoScroll";
 import FadeIn from "../components/FadeIn";
 
-const partners = [
-  { src: "/feature-icon1.svg", alt: "Partner 1" },
-  { src: "/feature-icon2.svg", alt: "Partner 2" },
-  { src: "/feature-icon3.svg", alt: "Partner 3" },
-  { src: "/feature-icon4.svg", alt: "Partner 4" },
-  { src: "/feature-icon5.svg", alt: "Partner 5" },
-  { src: "/feature-icon1.svg", alt: "Partner 6" },
-  { src: "/feature-icon2.svg", alt: "Partner 7" },
-  { src: "/feature-icon3.svg", alt: "Partner 8" },
+// Partner logos - dark version for light theme, white version for dark theme
+const partnerLogos = [
+  { name: "Anatolicus", dark: "/partners/rocr-anatolicus-dark.svg", white: "/partners/rocr-anatolicus-white.svg" },
+  { name: "Antalyaspor", dark: "/partners/rocr-antalyaspor-dark.svg", white: "/partners/rocr-antalyaspor-white.svg" },
+  { name: "EventPlus", dark: "/partners/rocr-eventplus-dark.svg", white: "/partners/rocr-eventplus-white.svg" },
+  { name: "HostDirekt", dark: "/partners/rocr-hostdirekt-dark.svg", white: "/partners/rocr-hostdirekt-white.svg" },
+  { name: "İBÜ", dark: "/partners/rocr-ibü-dark.svg", white: "/partners/rocr-ibü-white.svg" },
+  { name: "Maraş Ceviz", dark: "/partners/rocr-maras-ceviz-dark.svg", white: "/partners/rocr-maras-ceviz-white.svg" },
+  { name: "MICE", dark: "/partners/rocr-mice-dark.svg", white: "/partners/rocr-mice-white.svg" },
 ];
 
 const caseStudies = [
   {
-    partner: "Tech Corp",
-    title: "AI-Powered Customer Support Platform",
-    desc: "Designed and built a full-stack AI chatbot platform that reduced response times by 60% and improved customer satisfaction scores.",
+    partner: "Antalyaspor",
+    title: "Digital Fan Experience Platform",
+    desc: "Comprehensive digital platform for fan engagement, match-day experiences, and club communications reaching over 500K supporters.",
+    tags: ["Web Experiences", "Content Production"],
+  },
+  {
+    partner: "HostDirekt",
+    title: "Cloud Infrastructure & DevOps",
+    desc: "Migrated legacy hosting infrastructure to modern cloud architecture with 99.99% uptime SLA and automated deployment pipelines.",
+    tags: ["Cloud & DevOps", "Performance & SEO"],
+  },
+  {
+    partner: "EventPlus",
+    title: "Event Management System",
+    desc: "Full-stack event management platform with AI-powered scheduling, ticketing integration, and real-time analytics dashboards.",
     tags: ["AI & Automation", "Web Experiences"],
   },
   {
-    partner: "Creative Studio",
-    title: "Brand Identity & E-Commerce Launch",
-    desc: "Complete brand refresh and Shopify storefront that increased online revenue by 140% in the first quarter.",
+    partner: "Anatolicus",
+    title: "E-commerce & Brand Identity",
+    desc: "Complete brand refresh and Shopify storefront with custom checkout flow, increasing online revenue by 140% in the first quarter.",
     tags: ["Brand & Identity", "E-commerce"],
   },
   {
-    partner: "FinTech Solutions",
-    title: "Cloud Migration & DevOps Pipeline",
-    desc: "Migrated legacy infrastructure to AWS with full CI/CD pipelines, cutting deployment time from hours to minutes.",
-    tags: ["Cloud & DevOps", "Strategy & Consulting"],
-  },
-  {
-    partner: "Health Plus",
-    title: "Performance Optimization & SEO",
-    desc: "Achieved 98+ Lighthouse scores and doubled organic search traffic within 3 months through technical SEO and Core Web Vitals work.",
-    tags: ["Performance & SEO", "Web Experiences"],
-  },
-  {
-    partner: "EduLearn",
-    title: "Content Production & Motion Design",
-    desc: "Produced a library of 50+ educational videos with custom motion graphics, increasing user engagement by 85%.",
+    partner: "İBÜ",
+    title: "Educational Content Platform",
+    desc: "Produced a library of 50+ educational videos with custom motion graphics and interactive learning modules for student engagement.",
     tags: ["Content Production", "Strategy & Consulting"],
   },
   {
-    partner: "RetailMax",
-    title: "Ongoing Support & Growth Program",
-    desc: "Monthly A/B testing, feature iteration, and data-driven enhancements leading to a sustained 25% growth in conversions.",
-    tags: ["Support & Growth", "E-commerce"],
+    partner: "MICE",
+    title: "Business Intelligence Dashboard",
+    desc: "Custom analytics platform with real-time KPI tracking, automated reporting, and executive dashboard for data-driven decision making.",
+    tags: ["Strategy & Consulting", "AI & Automation"],
   },
 ];
 
 export default function PartnersPage() {
   const { theme } = useTheme();
+
+  // Select appropriate logo version based on theme
+  const partners = partnerLogos.map((partner) => ({
+    src: theme === "light" ? partner.dark : partner.white,
+    alt: partner.name,
+  }));
 
   const shell =
     theme === "light"
@@ -97,19 +103,15 @@ export default function PartnersPage() {
       {/* Logo Carousel */}
       <FadeIn delay={0.1}>
         <div className={`py-8 ${shell}`}>
-          <div className={theme === "light" ? "opacity-70" : "opacity-60 invert"}>
-            <LogoLoop
-              logos={partners}
-              speed={60}
-              direction="left"
-              logoHeight={40}
-              gap={72}
-              pauseOnHover
-              fadeOut
-              fadeOutColor={fadeColor}
-              ariaLabel="Partner logos"
-            />
-          </div>
+          <InfiniteLogoScroll
+            logos={partners}
+            speed={25}
+            direction="left"
+            logoHeight={196}
+            gap={80}
+            pauseOnHover
+            scaleOnHover
+          />
         </div>
       </FadeIn>
 

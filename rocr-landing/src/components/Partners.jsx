@@ -1,20 +1,26 @@
 import React from "react";
 import { useTheme } from "../context/ThemeContext";
-import { LogoLoop } from "./LogoLoop";
+import InfiniteLogoScroll from "./InfiniteLogoScroll";
 
-const defaultPartners = [
-  { src: "/feature-icon1.svg", alt: "Partner 1" },
-  { src: "/feature-icon2.svg", alt: "Partner 2" },
-  { src: "/feature-icon3.svg", alt: "Partner 3" },
-  { src: "/feature-icon4.svg", alt: "Partner 4" },
-  { src: "/feature-icon5.svg", alt: "Partner 5" },
-  { src: "/feature-icon1.svg", alt: "Partner 6" },
-  { src: "/feature-icon2.svg", alt: "Partner 7" },
-  { src: "/feature-icon3.svg", alt: "Partner 8" },
+// Partner logos - dark version for light theme, white version for dark theme
+const partnerLogos = [
+  { name: "Anatolicus", dark: "/partners/rocr-anatolicus-dark.svg", white: "/partners/rocr-anatolicus-white.svg" },
+  { name: "Antalyaspor", dark: "/partners/rocr-antalyaspor-dark.svg", white: "/partners/rocr-antalyaspor-white.svg" },
+  { name: "EventPlus", dark: "/partners/rocr-eventplus-dark.svg", white: "/partners/rocr-eventplus-white.svg" },
+  { name: "HostDirekt", dark: "/partners/rocr-hostdirekt-dark.svg", white: "/partners/rocr-hostdirekt-white.svg" },
+  { name: "İBÜ", dark: "/partners/rocr-ibü-dark.svg", white: "/partners/rocr-ibü-white.svg" },
+  { name: "Maraş Ceviz", dark: "/partners/rocr-maras-ceviz-dark.svg", white: "/partners/rocr-maras-ceviz-white.svg" },
+  { name: "MICE", dark: "/partners/rocr-mice-dark.svg", white: "/partners/rocr-mice-white.svg" },
 ];
 
-export default function Partners({ partners = defaultPartners }) {
+export default function Partners() {
   const { theme } = useTheme();
+
+  // Select appropriate logo version based on theme
+  const partners = partnerLogos.map((partner) => ({
+    src: theme === "light" ? partner.dark : partner.white,
+    alt: partner.name,
+  }));
 
   const shell =
     theme === "light"
@@ -42,19 +48,15 @@ export default function Partners({ partners = defaultPartners }) {
           </p>
         </div>
 
-        <div className={theme === "light" ? "opacity-70" : "opacity-60 invert"}>
-          <LogoLoop
-            logos={partners}
-            speed={80}
-            direction="left"
-            logoHeight={36}
-            gap={64}
-            pauseOnHover
-            fadeOut
-            fadeOutColor={fadeColor}
-            ariaLabel="Partner logos"
-          />
-        </div>
+        <InfiniteLogoScroll
+          logos={partners}
+          speed={25}
+          direction="left"
+          logoHeight={196}
+          gap={80}
+          pauseOnHover
+          scaleOnHover
+        />
       </div>
     </section>
   );

@@ -36,8 +36,8 @@
 ### Polish & Production
 - [x] **SEO / Meta Tags** — react-helmet-async entegre edildi, her sayfa icin title, description, OG, Twitter card eklendi
 - [x] **Content finalization** — Footer linkleri gercek rotalara guncellendi (`/services`, `/partners`, `/about`, `/contact`)
-- [ ] **Dedicated service icons** — Bazi servislerde placeholder image kullaniliyor
-- [ ] **Real partner logos** — Placeholder feature icon'lar yerine gercek logolar
+- [x] **Real partner logos** — 7 gercek partner logosu tema bazli (dark/white): Anatolicus, Antalyaspor, EventPlus, HostDirekt, IBU, Maras Ceviz, MICE
+- [x] **Service icons** — Kaldırıldı (intentional design decision)
 - [ ] **Code splitting** — Bundle size optimizasyonu icin dynamic imports (Three.js/ColorBends)
 - [ ] **Mobile menu animation** — Daha smooth acilis/kapanis animasyonu
 - [ ] **Contact form functionality** — Form submission backend entegrasyonu (Formspree, Netlify Forms)
