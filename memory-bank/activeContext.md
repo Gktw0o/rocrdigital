@@ -1,112 +1,205 @@
 # Active Context — ROCR Digital
 
+**Last Updated:** 2026-02-02
+
 ## Current Work Focus
 
-**rocr-panel scaffolding completed.** Full admin panel project structure with 30 files created. All 7 Svelte pages, 6 reusable components, Svelte stores with CRUD methods, Tauri Rust backend with 3 commands, and GitHub Actions CI/CD workflow are in place. Dependencies not yet installed (`bun install` needed).
+**Backend Foundation Complete.** rocr-backend project scaffolded with Bun + Hono + Drizzle. Core authentication, users, and contacts API implemented. Ready for database connection and testing.
 
 ---
 
-## Session Summary (What Was Done)
+## Session Summary (2026-02-02)
 
-### 1. Codebase Analysis
-- Explored entire rocr-landing codebase: 6 pages, 22 components, React 19 + Vite 7 + Tailwind 4
-- Documented all routes, components, data models, styling patterns, and tech decisions
-- Identified remaining work: contact form backend, Google Maps, deployment, performance audit
+### Completed Tasks
 
-### 2. rocr-panel Project Created (30 files)
-**Frontend (Svelte 5 + Vite 6 + TailwindCSS 4):**
-- `App.svelte` — Root layout with collapsible Sidebar + Header + Router
-- 7 pages: Dashboard, Contacts, Partners, Services, Content, Team, Settings
-- 6 components: Sidebar, Header, Card, Modal, DataTable, ThemeToggle
-- 2 stores: theme.js (dark/light + localStorage), data.js (CRUD methods + 3 derived stores)
-- Utils: formatDate, getStatusColor, getStatusLabel, truncate, generateId
-- Svelte 5 runes syntax throughout ($state, $derived, $props, $bindable)
+#### 1. Backend Project Initialized ✅
+```bash
+cd rocr-backend && bun init -y
+```
 
-**Backend (Tauri 2 / Rust):**
-- `lib.rs` — 3 commands: read_data, write_data, export_data (app data directory persistence)
-- `main.rs` — Desktop entry point calling rocr_panel_lib::run()
-- `tauri.conf.json` — 1200x800 window, com.rocrdigital.panel identifier
-- `Cargo.toml` — tauri 2, serde, serde_json, tauri-plugin-shell
-- `capabilities/default.json` — core:default + shell:allow-open
+#### 2. Dependencies Installed ✅
+- **Runtime:** hono@4.11.7, zod@4.3.6
+- **Database:** drizzle-orm@0.45.1, postgres@3.4.8
+- **Auth:** jose@6.1.3, bcryptjs@3.0.3
+- **Dev:** drizzle-kit@0.31.8, typescript@5.9.3, bun-types@1.3.8
 
-**Configuration:**
-- `package.json` — svelte 5, tauri-apps/api 2, vite 6, tailwindcss 4, lucide-svelte, svelte-spa-router
-- `vite.config.js` — svelte() + tailwindcss(), port 1420
-- `svelte.config.js` — vitePreprocess()
-- `.gitignore` — node_modules, dist, src-tauri/target, src-tauri/gen
+#### 3. Project Structure Created ✅
+```
+rocr-backend/
+├── src/
+│   ├── index.ts               # Hono app, CORS, routes
+│   ├── routes/
+│   │   ├── auth.ts            # Login, logout, refresh, me, update-password
+│   │   ├── users.ts           # CRUD (admin only)
+│   │   ├── contacts.ts        # CRUD + public POST
+│   │   ├── health.ts          # Health checks
+│   │   └── index.ts
+│   ├── db/
+│   │   ├── index.ts           # Drizzle client
+│   │   ├── seed.ts            # Admin seed script
+│   │   └── schema/
+│   │       ├── users.ts       # users, sessions tables
+│   │       ├── contacts.ts    # contacts table
+│   │       ├── projects.ts    # projects, tasks, milestones
+│   │       ├── calendar.ts    # events, schedules, off_days
+│   │       ├── time.ts        # time_entries
+│   │       ├── content.ts     # partners, services, content, team_profiles
+│   │       └── index.ts
+│   ├── middleware/
+│   │   ├── auth.ts            # JWT verification
+│   │   ├── roles.ts           # Role-based access control
+│   │   ├── error.ts           # Error handling
+│   │   └── index.ts
+│   └── utils/
+│       ├── jwt.ts             # Sign/verify tokens
+│       ├── password.ts        # Hash/compare passwords
+│       └── index.ts
+├── drizzle.config.ts
+├── package.json
+├── tsconfig.json
+├── .env
+├── .env.example
+├── .gitignore
+└── README.md
+```
 
-### 3. GitHub Actions Workflow
-- `.github/workflows/release-panel.yml` created
-- Job 1: Desktop builds (4 matrix: Windows .exe/.msi, macOS ARM .dmg, macOS Intel .dmg, Ubuntu .deb/.AppImage)
-- Job 2: Android build (Java 17 + Android SDK + cargo tauri android build --apk)
-- Trigger: push to `release` branch (paths: rocr-panel/**) or manual dispatch
-- Uses: oven-sh/setup-bun@v2, dtolnay/rust-toolchain@stable, swatinem/rust-cache@v2, tauri-apps/tauri-action@v0
+#### 4. Database Schema Defined ✅
+- **users** — id, email, passwordHash, name, role, hourlyRate, isActive
+- **sessions** — id, userId, refreshToken, userAgent, ipAddress, expiresAt
+- **contacts** — id, name, email, subject, message, status, assignedToId, notes
+- **projects** — id, name, description, clientName, status, ownerId, budget, dates
+- **tasks** — id, projectId, milestoneId, title, status, priority, assigneeId
+- **milestones** — id, projectId, title, dueDate, completedAt
+- **events** — id, title, eventType, visibility, creatorId, startTime, endTime
+- **schedules** — id, userId, dayOfWeek, startTime, endTime
+- **off_days** — id, userId, date, reason, type, isApproved
+- **time_entries** — id, userId, projectId, taskId, startTime, endTime, isBillable
+- **partners** — id, name, description, tags, logoUrl
+- **services** — id, title, description, features, isActive
+- **content** — id, section, data (JSONB)
+- **team_profiles** — id, name, role, group, description
 
-### 4. Memory Bank Updated
-- All 6 files updated to reflect both projects accurately
-- Documented actual Svelte 5 runes patterns, Tauri command signatures, data store methods
+#### 5. API Routes Implemented ✅
+| Route | Endpoints | Auth |
+|-------|-----------|------|
+| `/api/v1/auth` | login, logout, refresh, me, update-password | Mixed |
+| `/api/v1/users` | CRUD, reset-password | Admin only |
+| `/api/v1/contacts` | CRUD, stats, public POST | Mixed |
+| `/health` | health, ready, live | Public |
+
+#### 6. Middleware Implemented ✅
+- **authMiddleware** — JWT verification, user context
+- **optionalAuthMiddleware** — Optional auth
+- **requireRole** — Specific roles required
+- **requireMinRole** — Minimum role level
+- **errorHandler** — Global error handling
+- **notFound** — 404 handler
 
 ---
 
 ## Current State
 
-### rocr-landing — Status: Polish & Production
-- All 6 pages functional with React Router nested layout
-- Dark/Light theme system, ColorBends WebGL shader, Lenis smooth scroll
-- SEO meta tags on all pages via react-helmet-async
-- 7 real partner logos (dark/white SVG variants), 6 case studies
-- 9 service categories with expanded detail views
-- **Not done:** Contact form backend, Google Maps, deployment config, Lighthouse audit
+### rocr-landing — Status: Production Ready ✅
+Contact form ready for backend integration.
 
-### rocr-panel — Status: Scaffolded (Not Yet Installed)
-- 30 files created with complete project structure
-- All 7 admin pages with UI implemented
-- CRUD operations work in-memory via Svelte stores (with sample data)
-- Tauri commands implemented in Rust but not yet wired to frontend
-- **Not done:** `bun install`, Tauri dev verification, Tauri-to-frontend wiring, app icons, cross-platform testing
+### rocr-panel — Status: UI Base Complete ✅
+Awaiting backend integration.
 
-### CI/CD — Status: Workflow Created (Not Yet Tested)
-- release-panel.yml exists with 5 build targets (4 desktop + 1 Android)
-- Has not been triggered yet (no push to release branch)
+### rocr-backend — Status: Code Complete, Awaiting DB ⏳
+- ✅ All foundation code written
+- ⏳ PostgreSQL connection needed
+- ⏳ Schema push to database
+- ⏳ Admin seed
+- ⏳ API testing
 
 ---
 
 ## Next Steps (Priority Order)
 
-### Immediate
-1. `cd rocr-panel && bun install` — Install frontend dependencies
-2. `bun run tauri dev` — Verify Tauri development environment works
-3. Wire Tauri invoke calls to Svelte stores (connect frontend CRUD to Rust persistence)
-4. Generate app icons (`bun run tauri icon` with source image)
+### Immediate: Database Setup
+1. **Install PostgreSQL** locally or use cloud service
+2. **Create database:**
+   ```sql
+   CREATE DATABASE rocr_db;
+   ```
+3. **Update `.env`** with DATABASE_URL
+4. **Push schema:**
+   ```bash
+   cd rocr-backend
+   bun run db:push
+   ```
+5. **Seed admin:**
+   ```bash
+   bun run db:seed
+   ```
+6. **Start server:**
+   ```bash
+   bun run dev
+   ```
 
-### Short Term
-5. Build and test on Windows (`bun run tauri build`)
-6. Initialize and test Android target (`bun run tauri android init`)
-7. Push to release branch and verify GitHub Actions workflow runs
-8. Add authentication/login screen
-9. Connect rocr-landing contact form to an API that rocr-panel can read
+### Testing
+7. **Test health endpoint:**
+   ```bash
+   curl http://localhost:3000/health
+   ```
+8. **Test login:**
+   ```bash
+   curl -X POST http://localhost:3000/api/v1/auth/login \
+     -H "Content-Type: application/json" \
+     -d '{"email":"admin@rocrdigital.com","password":"Admin123!"}'
+   ```
 
-### Medium Term
-10. Polish UI (loading states, error handling, confirmation dialogs)
-11. Implement actual data export/import via Tauri file dialog
-12. Cross-platform testing (macOS, Linux, Android)
-13. Code signing setup (Windows certificate, macOS notarization)
-14. rocr-landing: Contact form backend, Google Maps, deployment, Lighthouse audit
+### Phase 2: Additional Routes
+9. Implement projects routes
+10. Implement tasks routes
+11. Implement calendar routes
+12. Implement schedule routes
+13. Implement time tracking routes
+14. Implement content routes
+
+### Phase 3: Frontend Integration
+15. rocr-landing contact form → backend
+16. rocr-panel auth implementation
+17. rocr-panel API integration
 
 ---
 
-## Active Decisions
-- **Panel tech stack:** Svelte 5 (runes) + Tauri 2 + Bun — chosen for compiled output size + Rust security
-- **Data storage:** Local JSON via Tauri app_data_dir (in-memory Svelte stores as current layer)
-- **Routing:** svelte-spa-router (hash-based, works in Tauri webview without server)
-- **Theme:** Same design tokens as rocr-landing (--color-primary, --color-accent-purple, etc.)
-- **CI/CD:** GitHub Actions + tauri-action for desktop, separate job for Android APK
-- **UI language:** Turkish (Turkce) labels in panel (Mesajlar, Partnerler, Servisler, etc.)
+## Environment Variables
 
-## Key Implementation Details
-- Svelte 5 runes: `$state`, `$derived`, `$props`, `$bindable` — NOT legacy `let` reactivity
-- Svelte `mount()` API (not `new App()`) for Svelte 5 component instantiation
-- Data store has 11 CRUD methods + 3 derived stores (unreadContacts, activeServices, teamByGroup)
-- Tauri commands use `app: tauri::AppHandle` parameter (not direct path access)
-- Panel sidebar collapses from 240px to 68px with icon-only mode
-- `#[cfg_attr(mobile, tauri::mobile_entry_point)]` on lib.rs run() for Android compatibility
+```env
+# Required
+DATABASE_URL=postgresql://postgres:password@localhost:5432/rocr_db
+JWT_SECRET=min-32-character-secret-key-here
+
+# Optional (have defaults)
+JWT_ACCESS_EXPIRES=15m
+JWT_REFRESH_EXPIRES=7d
+ADMIN_EMAIL=admin@rocrdigital.com
+ADMIN_PASSWORD=Admin123!
+PORT=3000
+NODE_ENV=development
+ALLOWED_ORIGINS=http://localhost:5173,http://localhost:1420
+```
+
+---
+
+## File Changes This Session
+
+| File | Action |
+|------|--------|
+| `rocr-backend/` | Created directory |
+| `package.json` | Created with scripts |
+| `tsconfig.json` | Created with strict mode |
+| `drizzle.config.ts` | Created |
+| `.env`, `.env.example` | Created |
+| `.gitignore` | Created |
+| `README.md` | Created with docs |
+| `src/index.ts` | Created Hono app |
+| `src/db/index.ts` | Created Drizzle client |
+| `src/db/seed.ts` | Created seed script |
+| `src/db/schema/*.ts` | Created all 6 schema files |
+| `src/routes/*.ts` | Created 4 route files |
+| `src/middleware/*.ts` | Created 3 middleware files |
+| `src/utils/*.ts` | Created 2 utility files |
+
+**Total: 22 files created**

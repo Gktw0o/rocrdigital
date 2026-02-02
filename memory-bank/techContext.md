@@ -1,5 +1,7 @@
 # Tech Context — ROCR Digital
 
+**Last Updated:** 2026-02-02
+
 ---
 
 ## rocr-landing Tech Stack
@@ -28,20 +30,20 @@
 ### UI & Styling
 | Library | Purpose |
 |---------|---------|
-| tailwind-merge | Merge Tailwind classes intelligently |
-| clsx | Conditional className builder |
-| class-variance-authority | Component variant system (CVA) |
-| tw-animate-css | Tailwind animation utilities |
-| lucide-react | Icon library |
-| react-helmet-async | SEO meta tags (title, OG, Twitter cards) |
+| tailwind-merge 3.4.0 | Merge Tailwind classes intelligently |
+| clsx 2.1.1 | Conditional className builder |
+| class-variance-authority 0.7.1 | Component variant system (CVA) |
+| tw-animate-css 1.4.0 | Tailwind animation utilities |
+| lucide-react 0.553.0 | Icon library |
+| react-helmet-async 2.0.5 | SEO meta tags (title, OG, Twitter cards) |
 
 ### Dev Tools
 | Tool | Purpose |
 |------|---------|
-| ESLint 9 (flat config) | Code linting |
-| eslint-plugin-react-hooks | React hooks rules |
-| eslint-plugin-react-refresh | Fast refresh compatibility |
-| @vitejs/plugin-react | React support for Vite |
+| ESLint 9.39.1 (flat config) | Code linting |
+| eslint-plugin-react-hooks 5.2.0 | React hooks rules |
+| eslint-plugin-react-refresh 0.4.24 | Fast refresh compatibility |
+| @vitejs/plugin-react 5.1.0 | React support for Vite |
 | Bun | Package manager (bun.lock) |
 
 ### Commands (rocr-landing)
@@ -53,11 +55,6 @@ bun run build        # Production build -> dist/
 bun run preview      # Preview production build
 bun run lint         # ESLint
 ```
-
-### Vite Build Config
-- manualChunks: vendor-react, vendor-router, vendor-three, vendor-helmet
-- chunkSizeWarningLimit: 600KB
-- Three.js chunk: ~471KB (largest)
 
 ---
 
@@ -76,37 +73,10 @@ bun run lint         # ESLint
 ### Frontend Dependencies (package.json)
 | Library | Version | Purpose |
 |---------|---------|---------|
-| @tauri-apps/api | ^2.0.0 | JS API for Tauri invoke commands |
-| @tauri-apps/plugin-shell | ^2.0.0 | Shell command execution |
+| @tauri-apps/api | ^2.9.1 | JS API for Tauri invoke commands |
+| @tauri-apps/plugin-shell | ^2.3.4 | Shell command execution |
 | lucide-svelte | ^0.460.0 | Icon library (same icons as landing) |
 | svelte-spa-router | ^4.0.1 | Hash-based SPA routing |
-
-### Dev Dependencies (package.json)
-| Library | Version | Purpose |
-|---------|---------|---------|
-| @sveltejs/vite-plugin-svelte | ^4.0.0 | Svelte support for Vite |
-| @tailwindcss/vite | ^4.0.0 | Tailwind Vite plugin |
-| @tauri-apps/cli | ^2.0.0 | Tauri CLI (build, dev, android) |
-| svelte | ^5.0.0 | Svelte compiler |
-| tailwindcss | ^4.0.0 | CSS framework |
-| vite | ^6.0.0 | Build tool |
-
-### Rust Dependencies (Cargo.toml)
-| Crate | Version | Purpose |
-|-------|---------|---------|
-| tauri | 2 | Core framework |
-| tauri-build | 2 | Build system |
-| serde | 1 (features: derive) | Serialization |
-| serde_json | 1 | JSON handling |
-| tauri-plugin-shell | 2 | Shell integration |
-
-### Build Targets
-| Platform | Format | Build Command |
-|----------|--------|---------------|
-| Windows | .exe + .msi | `bun run tauri build` |
-| macOS | .dmg + .app | `bun run tauri build` |
-| Linux | .deb + .AppImage | `bun run tauri build` |
-| Android | .apk + .aab | `bun run tauri android build` |
 
 ### Commands (rocr-panel)
 ```bash
@@ -115,86 +85,247 @@ bun install                    # Install frontend deps
 bun run dev                    # Vite dev server (port 1420)
 bun run tauri dev              # Dev with Tauri native window
 bun run tauri build            # Production build (desktop)
-bun run tauri android init     # Initialize Android target
 bun run tauri android build    # Build Android APK/AAB
-bun run tauri icon             # Generate icons from source image
 ```
 
-### Development Prerequisites
-- **Bun** — Package manager and JS runtime
-- **Rust stable** — Required by Tauri (install via `rustup`)
-- **Visual Studio Build Tools** — Required for .exe/.msi on Windows
-- **Xcode + Command Line Tools** — Required for .dmg on macOS
-- **Android SDK + NDK + Java 17** — Required for .apk builds
+---
+
+## rocr-backend Tech Stack ⭐ NEW
+
+### Core Technologies
+| Technology | Version | Purpose |
+|-----------|---------|---------|
+| Bun | latest | Runtime, package manager, test runner |
+| Hono | ^4.0.0 | Ultra-fast web framework (edge-ready) |
+| PostgreSQL | 16+ | Relational database |
+| Drizzle ORM | ^0.39.0 | Type-safe SQL ORM |
+| Drizzle Kit | ^0.30.0 | Migrations & schema management |
+| Zod | ^3.24.0 | Runtime schema validation |
+
+### Authentication & Security
+| Library | Version | Purpose |
+|---------|---------|---------|
+| @hono/zod-validator | latest | Request validation middleware |
+| jose | ^5.0.0 | JWT signing/verification (edge-compatible) |
+| bcryptjs | ^3.0.0 | Password hashing (pure JS, Bun compatible) |
+| @hono/cors | built-in | CORS middleware |
+
+### Database & ORM
+| Tool | Purpose |
+|------|---------|
+| drizzle-orm | Type-safe queries, relations, transactions |
+| drizzle-kit | Schema migrations, studio UI |
+| postgres (pg driver) | PostgreSQL client for Bun |
+| drizzle-zod | Generate Zod schemas from Drizzle tables |
+
+### Development Tools
+| Tool | Purpose |
+|------|---------|
+| TypeScript | Type safety |
+| dotenv | Environment variables |
+| tsx | TypeScript execution (scripts) |
+
+### Database Schema Overview
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         CORE ENTITIES                          │
+├─────────────────────────────────────────────────────────────────┤
+│ users          │ Authentication, roles, profiles               │
+│ sessions       │ Refresh tokens, device tracking               │
+│ contacts       │ Lead submissions from landing page            │
+├─────────────────────────────────────────────────────────────────┤
+│                         CRM ENTITIES                           │
+├─────────────────────────────────────────────────────────────────┤
+│ projects       │ Client projects with status, dates            │
+│ tasks          │ Project tasks with assignees, priority        │
+│ milestones     │ Project milestones with deadlines             │
+├─────────────────────────────────────────────────────────────────┤
+│                    SCHEDULING ENTITIES                         │
+├─────────────────────────────────────────────────────────────────┤
+│ events         │ Calendar events, meetings                     │
+│ schedules      │ User work schedules (weekly pattern)          │
+│ off_days       │ User holidays, sick days, PTO                 │
+├─────────────────────────────────────────────────────────────────┤
+│                    TIME TRACKING ENTITIES                      │
+├─────────────────────────────────────────────────────────────────┤
+│ time_entries   │ Clock in/out, manual entries                  │
+│ time_reports   │ Weekly/monthly summaries                      │
+├─────────────────────────────────────────────────────────────────┤
+│                    CONTENT ENTITIES                            │
+├─────────────────────────────────────────────────────────────────┤
+│ partners       │ Portfolio partners                            │
+│ services       │ Service catalog                               │
+│ content        │ Website content (hero, about, etc.)           │
+│ team_profiles  │ Public team member profiles                   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### API Endpoints Structure
+```
+/api/v1
+├── /auth
+│   ├── POST   /login          # Login with email/password
+│   ├── POST   /logout         # Logout (invalidate refresh token)
+│   ├── POST   /refresh        # Refresh access token
+│   └── POST   /password-reset # Request password reset
+│
+├── /users (Admin only)
+│   ├── GET    /               # List all users
+│   ├── POST   /               # Create new user (admin seeds)
+│   ├── GET    /:id            # Get user by ID
+│   ├── PATCH  /:id            # Update user
+│   └── DELETE /:id            # Soft delete user
+│
+├── /contacts
+│   ├── GET    /               # List contacts (with filters)
+│   ├── POST   /               # Create contact (from landing)
+│   ├── GET    /:id            # Get contact details
+│   ├── PATCH  /:id            # Update status, add notes
+│   └── DELETE /:id            # Archive contact
+│
+├── /projects
+│   ├── GET    /               # List projects
+│   ├── POST   /               # Create project
+│   ├── GET    /:id            # Get project with tasks
+│   ├── PATCH  /:id            # Update project
+│   ├── DELETE /:id            # Archive project
+│   └── /:id/tasks             # Nested task routes
+│
+├── /tasks
+│   ├── GET    /               # List all tasks (with filters)
+│   ├── POST   /               # Create task
+│   ├── GET    /:id            # Get task details
+│   ├── PATCH  /:id            # Update task
+│   └── DELETE /:id            # Delete task
+│
+├── /calendar
+│   ├── GET    /events         # Get events (date range)
+│   ├── POST   /events         # Create event
+│   ├── PATCH  /events/:id     # Update event
+│   └── DELETE /events/:id     # Delete event
+│
+├── /schedule
+│   ├── GET    /               # Get current user schedule
+│   ├── PUT    /               # Set weekly schedule
+│   ├── GET    /availability   # Check team availability
+│   ├── POST   /off-days       # Request off day
+│   └── GET    /off-days       # List off days
+│
+├── /time
+│   ├── POST   /clock-in       # Start time tracking
+│   ├── POST   /clock-out      # Stop time tracking
+│   ├── GET    /entries        # List time entries
+│   ├── POST   /entries        # Manual time entry
+│   ├── PATCH  /entries/:id    # Update entry
+│   └── GET    /reports        # Generate time reports
+│
+├── /content
+│   ├── GET    /               # Get all content
+│   ├── PATCH  /:section       # Update content section
+│   └── GET    /partners       # Public partner list
+│
+└── /health
+    └── GET    /               # Health check
+```
+
+### Commands (rocr-backend)
+```bash
+cd rocr-backend
+bun install                    # Install dependencies
+bun run dev                    # Dev server with hot reload (port 3000)
+bun run build                  # Bundle for production
+bun run start                  # Start production server
+bun run db:generate            # Generate migrations from schema
+bun run db:migrate             # Run pending migrations
+bun run db:push                # Push schema directly (dev)
+bun run db:studio              # Open Drizzle Studio
+bun run db:seed                # Seed initial admin user
+bun run test                   # Run tests
+```
+
+### Environment Variables (.env)
+```env
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/rocr_db
+
+# JWT
+JWT_SECRET=your-super-secret-key-min-32-chars
+JWT_ACCESS_EXPIRES=15m
+JWT_REFRESH_EXPIRES=7d
+
+# Admin Seed
+ADMIN_EMAIL=admin@rocrdigital.com
+ADMIN_PASSWORD=initial-password-change-me
+
+# Server
+PORT=3000
+NODE_ENV=development
+
+# CORS
+ALLOWED_ORIGINS=http://localhost:5173,http://localhost:1420
+```
 
 ---
 
 ## Shared Configuration
 
-### Path Aliases
-- rocr-landing: `@/*` -> project root (jsconfig.json)
-- rocr-panel: standard relative imports (`./lib/stores/theme.js`)
+### Development Ports
+| Service | Port | Purpose |
+|---------|------|---------|
+| rocr-landing | 5173 | Vite dev server |
+| rocr-panel | 1420 | Tauri/Vite dev server |
+| rocr-backend | 3000 | Hono API server |
+| PostgreSQL | 5432 | Database |
+| Drizzle Studio | 4983 | Database UI |
 
-### CSS Variables (both projects)
-```css
-/* Panel CSS variables (app.css) */
-[data-theme="dark"] {
-  --bg: #0a0a0a;
-  --bg-secondary: #111111;
-  --bg-card: rgba(255, 255, 255, 0.05);
-  --border: rgba(255, 255, 255, 0.1);
-  --text: #e5e7eb;
-  --text-secondary: #9ca3af;
-  --sidebar-bg: #0f0f0f;
-  --hover: rgba(255, 255, 255, 0.08);
-}
-[data-theme="light"] {
-  --bg: #f7f8fa;
-  --bg-secondary: #ffffff;
-  --bg-card: rgba(255, 255, 255, 0.7);
-  --border: rgba(0, 0, 0, 0.1);
-  --text: #111827;
-  --text-secondary: #6b7280;
-  --sidebar-bg: #ffffff;
-  --hover: rgba(0, 0, 0, 0.04);
-}
+### Authentication Flow
+```
+1. User opens rocr-panel
+2. Panel shows login screen
+3. User enters credentials
+4. POST /api/v1/auth/login → { accessToken, refreshToken }
+5. Panel stores tokens (secure storage)
+6. All subsequent requests include: Authorization: Bearer <accessToken>
+7. On 401, try POST /api/v1/auth/refresh with refreshToken
+8. On refresh failure, redirect to login
 ```
 
-### Technical Constraints
-- **rocr-landing:** Frontend only, no backend, ES modules, WebGL required, no TypeScript
-- **rocr-panel:** Desktop-first (Tauri window), Rust backend, local JSON persistence, no TypeScript
-- **Shared:** Bun as package manager, dark mode default, ROCR brand colors
+### User Roles
+| Role | Permissions |
+|------|-------------|
+| Admin | Full access, user management, settings |
+| Manager | Project management, team schedules, reports |
+| Employee | Own projects, tasks, schedule, time tracking |
+| Freelancer | Assigned tasks, own time tracking only |
 
-### CI/CD
-- **Workflow:** `.github/workflows/release-panel.yml`
-- **Trigger:** push to `release` branch (paths: `rocr-panel/**`) OR `workflow_dispatch`
-- **Desktop builds:** tauri-apps/tauri-action@v0 (Windows, macOS ARM+Intel, Ubuntu)
-- **Android build:** Separate job with Java 17 + Android SDK + cargo tauri android build
-- **Bun setup:** oven-sh/setup-bun@v2
-- **Rust cache:** swatinem/rust-cache@v2 (workspaces: rocr-panel/src-tauri -> target)
-- **Output:** GitHub Release (draft) with all platform binaries
+---
 
-### Dependencies Graph (rocr-panel)
-```
-index.html
-└── src/main.js — mount(App, target: #app)
-    └── App.svelte
-        ├── Sidebar.svelte (7 nav items, use:link from svelte-spa-router)
-        ├── Header.svelte ($unreadContacts badge, $theme toggle)
-        └── Router (svelte-spa-router)
-            ├── Dashboard.svelte ($data, $unreadContacts, $activeServices)
-            ├── Contacts.svelte ($data, DataTable, Modal)
-            ├── Partners.svelte ($data, Card, Modal)
-            ├── Services.svelte ($data, Card, Modal)
-            ├── Content.svelte ($data)
-            ├── Team.svelte ($data, $teamByGroup, Card, Modal)
-            └── Settings.svelte ($theme)
+## CI/CD
 
-stores/
-├── theme.js — writable (custom: set, toggle, init)
-└── data.js — writable (custom: 11 CRUD methods) + 3 derived stores
+### Existing Workflows
+- **release-panel.yml** — Multi-platform Tauri builds
 
-src-tauri/
-├── src/main.rs — calls rocr_panel_lib::run()
-└── src/lib.rs — tauri::Builder + 3 commands (read_data, write_data, export_data)
-```
+### New Workflow (to be created)
+- **deploy-backend.yml** — Deploy rocr-backend to:
+  - Railway / Render / Fly.io (recommended)
+  - Or self-hosted Docker container
+
+---
+
+## File Counts Summary
+
+### rocr-landing
+- **src/pages/**: 6 files
+- **src/components/**: 22 files
+- **src/layouts/**: 1 file
+
+### rocr-panel
+- **src/lib/pages/**: 7 files → expanding to 11+ (new CRM modules)
+- **src/lib/components/**: 6 files → expanding
+- **src/lib/stores/**: 2 files → adding auth store
+
+### rocr-backend (new)
+- **src/routes/**: ~10 route files
+- **src/db/schema/**: ~8 schema files
+- **src/middleware/**: ~4 middleware files
+- **src/services/**: ~6 service files
