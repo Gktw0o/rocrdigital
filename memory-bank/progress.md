@@ -1,68 +1,111 @@
 # Progress — ROCR Digital
 
-## What Works
+---
+
+## rocr-landing Progress
+
+### What Works
 - [x] Project scaffolding (Vite + React + Tailwind CSS)
 - [x] Custom font loading (Regular, Medium, SemiBold, Bold)
-- [x] Theme system (dark/light toggle, localStorage persistence, OS preference detection)
-- [x] ColorBends WebGL shader background (mouse-reactive, theme-aware colors)
-- [x] Navbar with logo, navigation links, theme toggle (desktop + mobile)
-- [x] Hero section with headline, TitleGraphic gradient text, and hero image
-- [x] Partners section — LogoLoop carousel with theme-aware styling
-- [x] Services section — 9-card grid with icons and descriptions
+- [x] Theme system (dark/light toggle, localStorage, OS preference)
+- [x] ColorBends WebGL shader background (mouse-reactive, theme-aware)
+- [x] Navbar with logo, navigation, theme toggle (desktop + mobile)
+- [x] Hero section with TitleGraphic gradient text
+- [x] Partners section — InfiniteLogoScroll carousel (7 real logos, dark/white variants)
+- [x] Services section — 9-card grid with descriptions
 - [x] About section — stats, values, company description
 - [x] Contact section — corporate address, info links, feedback buttons
 - [x] Footer — link groups, disclaimers, legal links, copyright
-- [x] Responsive layout (mobile/tablet/desktop breakpoints)
-- [x] Accessibility foundations (ARIA labels, semantic HTML, heading hierarchy)
+- [x] Responsive layout (mobile/tablet/desktop)
+- [x] Accessibility foundations (ARIA labels, semantic HTML)
 - [x] Lenis smooth scrolling
-- [x] FadeIn scroll-triggered entrance animations (motion/react)
-- [x] Navbar bug fixes (onClick, template literal, aria-expanded)
-- [x] Hero CSS fix (removed invalid textColor property)
-- [x] **BUG-1 FIXED:** ColorBends dark mode readability — Scrim div (`bg-black/50`) eklendi (`MainLayout.jsx:70`)
-- [x] **BUG-2 FIXED:** Hamburger menu desktop — `md:hidden` class eklendi (`Navbar.jsx:110`)
-- [x] **React Router kurulumu** — `react-router-dom` eklendi, BrowserRouter yapilandirmasi tamamlandi
-- [x] **MainLayout.jsx** — Shared layout (Navbar + ColorBends + Scrim + Footer + Outlet)
-- [x] **HomePage.jsx** — Landing page icerigini tutan page component
-- [x] **PartnersPage.jsx** — `/partners` route — partner detaylari sayfasi
-- [x] **ServicesPage.jsx** — `/services` route — genisletilmis servis bilgileri
-- [x] **AboutPage.jsx** — `/about` route — takim, misyon, vizyon
-- [x] **ContactPage.jsx** — `/contact` route — iletisim bilgileri
-- [x] **SiteMapPage.jsx** — `/site-map` route — HTML site haritasi
-- [x] **Navbar route guncelleme** — React Router `<Link>` componentleri kullaniliyor
-- [x] **Scroll-to-top on route change** — `MainLayout.jsx` icinde Lenis ile implement edildi
+- [x] FadeIn scroll-triggered animations (motion/react)
+- [x] React Router setup — 6 routes with nested layout
+- [x] MainLayout — shared Navbar + ColorBends + Scrim + Footer + Outlet
+- [x] All 6 pages: Home, Partners, Services, About, Contact, Site Map
+- [x] SEO meta tags (react-helmet-async) on all pages
+- [x] Code splitting — React.lazy(), manualChunks for vendors
+- [x] Mobile menu animation — hamburger morphing, slide-down panel
+- [x] Social media links on contact page
 
-## What's Left to Build
+### What's Left
+- [ ] Contact form backend integration (Formspree, Netlify Forms, or custom API)
+- [ ] Google Maps on contact page
+- [ ] Deployment configuration (Vercel/Netlify)
+- [ ] Performance audit (Lighthouse, Core Web Vitals)
 
-### Polish & Production
-- [x] **SEO / Meta Tags** — react-helmet-async entegre edildi, her sayfa icin title, description, OG, Twitter card eklendi
-- [x] **Content finalization** — Footer linkleri gercek rotalara guncellendi (`/services`, `/partners`, `/about`, `/contact`)
-- [x] **Real partner logos** — 7 gercek partner logosu tema bazli (dark/white): Anatolicus, Antalyaspor, EventPlus, HostDirekt, IBU, Maras Ceviz, MICE
-- [x] **Service icons** — Kaldırıldı (intentional design decision)
-- [x] **Code splitting** — React.lazy() for pages, lazy ColorBends, manualChunks for vendors (Three.js: 471KB ayrı chunk)
-- [x] **Mobile menu animation** — Hamburger→X morphing, slide-down panel, staggered item animations
-- [ ] **Contact form functionality** — Form submission backend entegrasyonu (Formspree, Netlify Forms)
-- [x] **Social media links** — ContactPage'deki LinkedIn, X, Instagram, GitHub linkleri eklendi
-- [ ] **Google Maps entegrasyonu** — Contact sayfasinda harita
-- [ ] **Deployment** — Build configuration, hosting setup (Vercel/Netlify)
-- [ ] **Performance audit** — Lighthouse skorlari, Core Web Vitals optimizasyonu
+### Status: **Polish & Production**
 
-## Current Status
-**Phase: Polish & Production**
+---
 
-Multi-page architecture complete. 6 fully functional pages: Home, Partners, Services, About, Contact, Site Map. React Router ile client-side routing aktif. ColorBends WebGL background tum sayfalarda calisyor. Simdi production-ready hale getirmek icin polish ve optimization calismasi gerekiyor.
+## rocr-panel Progress
 
-## Known Issues
-| Issue | Severity | Location | Fix Plan |
-|-------|----------|----------|----------|
-| Placeholder service icons | Low | `Services.jsx` | Ozel ikonlar olustur veya lucide-react kullan |
-| Placeholder partner logos | Low | `Partners.jsx`, `PartnersPage.jsx` | Gercek partner logolari ekle |
-| Bundle size > 500KB | Medium | Build output | Dynamic imports ile code splitting |
-| Contact form non-functional | Medium | `ContactPage.jsx` | Backend API veya form service entegrasyonu |
-| No meta tags | Medium | `index.html` | react-helmet veya manuel meta tag ekle |
+### What Works
+- [x] Project structure created (Svelte 5 + Vite + TailwindCSS + Tauri 2)
+- [x] package.json with all frontend dependencies
+- [x] Vite configuration with Svelte plugin
+- [x] Svelte compiler configuration
+- [x] Tauri configuration (tauri.conf.json)
+- [x] Rust backend (Cargo.toml, main.rs, lib.rs, build.rs)
+- [x] Tauri capabilities/permissions (default.json)
+- [x] HTML entry point (index.html)
+- [x] Global styles with TailwindCSS + ROCR brand tokens
+- [x] Theme store (dark/light with localStorage)
+- [x] Data store (contacts, partners, services, content, team)
+- [x] Root App component with layout structure
+- [x] Sidebar navigation component
+- [x] Header component with theme toggle
+- [x] Dashboard page (stats, recent contacts, quick actions)
+- [x] Contacts page (table, search, status management)
+- [x] Partners page (grid, CRUD operations)
+- [x] Services page (list, edit, feature management)
+- [x] Content page (section editing)
+- [x] Team page (grid, group management)
+- [x] Settings page (profile, preferences, data management)
+- [x] GitHub Actions release workflow (.github/workflows/release-panel.yml)
+- [x] Memory bank documentation updated
+
+### What's Left
+- [ ] Install dependencies (`bun install`)
+- [ ] Verify Tauri dev environment (`bun run tauri dev`)
+- [ ] Test Windows build (`bun run tauri build`)
+- [ ] Initialize Android target (`bun run tauri android init`)
+- [ ] Test Android build (`bun run tauri android build`)
+- [ ] Implement actual Tauri commands for data persistence
+- [ ] Add real CRUD functionality with local storage
+- [ ] Build authentication/login screen
+- [ ] Add data export/import functionality
+- [ ] Polish and test all UI components
+- [ ] Cross-platform testing (Windows, macOS, Android)
+
+### Status: **Initial Setup Complete**
+
+---
+
+## CI/CD Progress
+
+### What Works
+- [x] GitHub Actions workflow file created
+- [x] Multi-platform matrix (Windows, macOS ARM, macOS Intel, Ubuntu)
+- [x] Bun setup for frontend deps
+- [x] Rust toolchain setup with caching
+- [x] tauri-action integration for build + release
+- [x] Automated GitHub Release creation
+
+### What's Left
+- [ ] Test workflow on actual push
+- [ ] Add Android build job (requires signing setup)
+- [ ] Set up code signing (Windows certificate, macOS notarization)
+- [ ] Add version bumping automation
+
+---
 
 ## Evolution of Decisions
-1. **Initial commit (28485aa):** Established MVP with React 19 + Vite 7 + Tailwind 4 stack. Chose Three.js WebGL shader for background effect. Implemented custom theme system with Context API.
-2. **Services addition (0758a16):** Added theme-aware Services section following established card pattern. Chose 3-column grid layout with 9 service categories.
-3. **Full Sprint:** Fixed all known bugs. Added Partners (LogoLoop), About sections. Integrated Lenis smooth scroll and motion/react FadeIn animations. Established FadeIn as standard animation wrapper pattern.
-4. **Multi-page implementation (completed):** Successfully transitioned from SPA to multi-page with React Router. Created MainLayout with shared ColorBends background, Navbar, and Footer. All 6 pages implemented: HomePage, PartnersPage, ServicesPage, AboutPage, ContactPage, SiteMapPage.
-5. **Current phase:** Polish & Production — Focus on SEO, performance, real content, and deployment readiness.
+1. **Initial (rocr-landing):** React 19 + Vite 7 + Tailwind 4 for landing page
+2. **Multi-page:** Expanded from SPA to 6-route multi-page application
+3. **Polish phase:** SEO, real partner logos, content finalization
+4. **Panel decision:** Chose Svelte 5 + Tauri 2 + Bun for admin panel
+   - Svelte: Smaller bundle size, reactive by default, compiled output
+   - Tauri: Lightweight native apps (vs Electron), Rust security, .exe/.dmg/.apk support
+   - Bun: Consistent with rocr-landing, fast package management
+5. **CI/CD:** GitHub Actions with tauri-action for automated multi-platform builds

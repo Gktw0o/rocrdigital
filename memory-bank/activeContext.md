@@ -2,113 +2,108 @@
 
 ## Current Work Focus
 
-Polish & Production phase progressing. SEO, content links, and partner logos complete. Next: contact form functionality, service icons, performance optimization.
-
-## Recent Changes (Latest Session)
-
-1. **Real Partner Logos Implementation:**
-   - 7 partner logos with dark/white theme variants in `/public/partners/`
-   - Partners: Anatolicus, Antalyaspor, EventPlus, HostDirekt, İBÜ, Maraş Ceviz, MICE
-   - `Partners.jsx` updated to dynamically select logo version based on theme
-   - `PartnersPage.jsx` updated with real partner data and case studies
-   - Removed CSS `invert` filter, using native dark/white SVG versions instead
-
-2. **SEO / Meta Tags Implementation:**
-   - `react-helmet-async` installed and configured
-   - Created reusable `SEO.jsx` component with title, description, OG, Twitter card support
-   - SEO component added to all 6 pages with unique meta content
-   - Updated `index.html` with base meta tags, proper favicon, and theme-color
-
-3. **Content Finalization:**
-   - Footer links updated from placeholder `#` to real routes
-   - Footer reorganized with Services, Company, Resources, For Business, About sections
-
-## Current State
-
-- ✅ 6-page multi-page application with React Router
-- ✅ Shared MainLayout (ColorBends + Navbar + Footer)
-- ✅ Dark/Light theme system functional across all pages
-- ✅ ColorBends WebGL shader background with readability scrim
-- ✅ Lenis smooth scroll with scroll-to-top on route change
-- ✅ Mobile-responsive Navbar with hamburger menu (mobile only)
-- ✅ All section components theme-aware
-- ✅ SEO meta tags on all pages (title, description, OG, Twitter)
-- ✅ Footer and navigation links working (no more placeholder `#` links)
-- ✅ Real partner logos with theme-aware variants (7 partners)
+New phase: **rocr-panel project initialization**. The landing website (rocr-landing) is in Polish & Production phase. Now creating the admin panel application with Svelte 5 + Tauri 2 + Bun for cross-platform deployment.
 
 ---
 
-## File Structure (Current)
+## Recent Changes (Current Session)
+
+### 1. rocr-panel Project Creation
+- Initialized Svelte 5 + Vite + TailwindCSS frontend
+- Set up Tauri 2 Rust backend (src-tauri/)
+- Created admin panel UI with 7 pages:
+  - Dashboard, Contacts, Partners, Services, Content, Team, Settings
+- Implemented Sidebar navigation + Header with theme toggle
+- Added Svelte stores for theme and data management
+- Configured Tauri commands for data persistence (read/write/export)
+
+### 2. GitHub Actions Workflow
+- Created `.github/workflows/release-panel.yml`
+- Multi-platform build: Windows (.exe), macOS (.dmg ARM + Intel), Ubuntu (.deb)
+- Triggered on push to `release` branch or manual dispatch
+- Uses `tauri-apps/tauri-action@v0` for automated build & release
+
+### 3. Memory Bank Update
+- Updated all 6 memory-bank files to include rocr-panel context
+- Added comprehensive documentation for both projects
+
+---
+
+## Current State
+
+### rocr-landing (Polish & Production)
+- All 6 pages fully functional
+- Theme system, WebGL background, smooth scrolling working
+- SEO meta tags on all pages
+- Real partner logos with theme variants
+- Remaining: Contact form backend, Google Maps, deployment, performance audit
+
+### rocr-panel (Initial Setup)
+- Project structure created
+- Frontend: Svelte 5 + Vite + TailwindCSS
+- Backend: Tauri 2 (Rust)
+- Package manager: Bun
+- Build targets: .exe, .dmg, .apk
+- GitHub Actions release workflow configured
+
+---
+
+## File Structure (Monorepo)
 ```
-src/
-├── pages/
-│   ├── HomePage.jsx        # Landing page (Hero, Partners, Services, About, Contact)
-│   ├── PartnersPage.jsx    # /partners — Partner details, case studies
-│   ├── ServicesPage.jsx    # /services — 9 service categories expanded
-│   ├── AboutPage.jsx       # /about — Team, mission, values
-│   ├── ContactPage.jsx     # /contact — Contact info, form placeholder
-│   └── SiteMapPage.jsx     # /site-map — HTML sitemap
-├── layouts/
-│   └── MainLayout.jsx      # Navbar + ColorBends + Scrim + <Outlet> + Footer
-├── components/             # 20 reusable components
-│   ├── Navbar.jsx          # React Router Links, theme toggle, mobile menu
-│   ├── Hero.jsx
-│   ├── Partners.jsx
-│   ├── Services.jsx
-│   ├── About.jsx
-│   ├── Contact.jsx
-│   ├── Footer.jsx
-│   ├── ColorBends.jsx      # WebGL shader background
-│   ├── FadeIn.jsx          # Scroll-triggered animation wrapper
-│   ├── LogoLoop.jsx        # Infinite carousel
-│   └── ...                 # Other effect components
-├── context/
-│   └── ThemeContext.jsx
-├── config/
-│   └── site.js
-├── lib/
-│   └── utils.js
-├── main.jsx               # BrowserRouter + ThemeProvider entry
-├── App.jsx                # Routes definition
-└── index.css
+rocrdigital/
+├── memory-bank/                # Shared documentation (6 files)
+├── rocr-landing/               # Web application
+│   ├── src/                    # React + Vite source
+│   ├── public/                 # Static assets
+│   ├── package.json
+│   └── vite.config.js
+├── rocr-panel/                 # Admin panel
+│   ├── src/                    # Svelte + Vite source
+│   ├── src-tauri/              # Tauri Rust backend
+│   ├── package.json
+│   └── vite.config.js
+└── .github/
+    └── workflows/
+        └── release-panel.yml   # CI/CD for panel builds
 ```
 
 ---
 
 ## Next Steps (Priority Order)
 
-### High Priority — Production Readiness
-1. **SEO / Meta Tags** — Add react-helmet or manual meta tags for each page (title, description, OG, Twitter)
-2. **Content Finalization** — Replace placeholder `#` links with real URLs
-3. **Real Partner Logos** — Replace placeholder icons with actual partner logos
-4. **Contact Form** — Implement form submission (Formspree, Netlify Forms, or custom API)
+### rocr-panel — Immediate
+1. Install dependencies (`bun install` in rocr-panel)
+2. Verify Tauri dev environment works (`bun run tauri dev`)
+3. Build and test on Windows (`bun run tauri build`)
+4. Initialize Android target (`bun run tauri android init`)
+5. Polish UI components and page layouts
 
-### Medium Priority — Enhancement
-5. **Service Icons** — Create/find dedicated icons for all 9 services
-6. **Google Maps** — Add map embed to ContactPage
-7. **Mobile Menu Animation** — Smoother open/close transition
-8. **Loading States** — Add skeleton/loading indicators for slow connections
+### rocr-panel — Short Term
+6. Implement data persistence (Tauri commands + local JSON storage)
+7. Add CRUD functionality for all entities (contacts, partners, services, team)
+8. Build content management module
+9. Add authentication/login screen
+10. Test cross-platform builds (Windows, macOS, Android)
 
-### Low Priority — Optimization
-9. **Code Splitting** — Lazy load ColorBends/Three.js to reduce initial bundle
-10. **Performance Audit** — Lighthouse, Core Web Vitals optimization
-11. **Deployment** — Configure for Vercel/Netlify, set up CI/CD
+### rocr-landing — Ongoing
+11. Contact form backend integration
+12. Google Maps on contact page
+13. Deployment configuration
+14. Performance audit (Lighthouse)
 
 ---
 
 ## Active Decisions
-- **Theme approach:** Conditional class strings per component (not Tailwind `dark:` variant)
-- **Routing:** React Router DOM v7+ with nested routes and `<Outlet>`
-- **WebGL background:** ColorBends in MainLayout, shared across all pages
-- **Readability scrim:** Dark semi-transparent overlay (`bg-black/50`) in dark mode only
-- **Animation strategy:** FadeIn wrapper + Lenis smooth scroll
-- **Page structure:** `src/pages/` for route components, `src/components/` for reusable UI
+- **Panel tech stack:** Svelte 5 + Tauri 2 + Bun (compiled to native apps)
+- **Data storage:** Local JSON files via Tauri FS (initially), API sync later
+- **Routing:** svelte-spa-router (hash-based, no server needed)
+- **Theme:** Consistent with rocr-landing (dark/light, same color tokens)
+- **CI/CD:** GitHub Actions with tauri-action for automated releases
+- **Android:** Tauri Android target (requires Android SDK setup)
 
 ## Important Patterns
-- Every visual component accepts theme from `useTheme()` and applies conditional styles
-- Card-based layouts: `rounded-2xl border backdrop-blur-md` pattern
-- Theme classes: `theme === "light" ? lightClasses : darkClasses`
-- Content data as default props arrays for reusability
-- `<FadeIn>` wrapper for scroll-triggered entrance animations
-- MainLayout handles shared elements; pages only define unique content
-- Route changes trigger scroll-to-top via Lenis
+- Svelte stores for reactive state management
+- Tauri commands bridge Rust backend to Svelte frontend
+- TailwindCSS with same design tokens as rocr-landing
+- Card-based layouts matching the landing page aesthetic
+- Sidebar + Header layout pattern for admin panel

@@ -1,0 +1,143 @@
+name: 'Release ROCR Panel'
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - release
+    paths:
+      - 'rocr-panel/**'
+
+jobs:
+  publish-tauri:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-latest'
+            args: '--target aarch64-apple-darwin'
+            label: 'macOS (Apple Silicon)'
+          - platform: 'macos-latest'
+            args: '--target x86_64-apple-darwin'
+            label: 'macOS (Intel)'
+          - platform: 'ubuntu-22.04'
+            args: ''
+            label: 'Linux (x64)'
+          - platform: 'windows-latest'
+            args: ''
+            label: 'Windows (x64)'
+
+    runs-on: ${{ matrix.platform }}
+    name: Build - ${{ matrix.label }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies (Ubuntu only)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './rocr-panel/src-tauri -> target'
+
+      - name: Install frontend dependencies
+        working-directory: rocr-panel
+        run: bun install
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: rocr-panel
+          tagName: panel-v__VERSION__
+          releaseName: 'ROCR Panel v__VERSION__'
+          releaseBody: |
+            ## ROCR Panel v__VERSION__
+
+            Cross-platform admin panel for ROCR Digital.
+
+            ### Downloads
+            - **Windows:** `.msi` or `.exe` installer
+            - **macOS:** `.dmg` disk image
+            - **Linux:** `.deb` package or `.AppImage`
+
+            ### Changes
+            See the commit history for details.
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}
+
+  # Android build (separate job)
+  build-android:
+    permissions:
+      contents: write
+    runs-on: ubuntu-22.04
+    name: Build - Android (APK)
+    needs: publish-tauri
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli --version "^2.0.0" --locked
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './rocr-panel/src-tauri -> target'
+
+      - name: Install frontend dependencies
+        working-directory: rocr-panel
+        run: bun install
+
+      - name: Initialize Android target
+        working-directory: rocr-panel
+        run: cargo tauri android init --ci
+
+      - name: Build Android APK
+        working-directory: rocr-panel
+        run: cargo tauri android build --apk true
+        env:
+          NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: rocr-panel/src-tauri/gen/android/app/build/outputs/apk/**/*.apk

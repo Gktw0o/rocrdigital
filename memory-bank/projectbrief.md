@@ -1,37 +1,101 @@
-# Project Brief — ROCR Digital
+# Project Brief — ROCR Digital (Monorepo)
 
 ## Overview
-ROCR Digital is a digital agency landing page/website built as a modern, visually rich single-page application. The project serves as the public-facing web presence for the ROCR Digital brand.
+ROCR Digital is a monorepo containing two main projects:
+1. **rocr-landing** — Public-facing agency website (React 19 + Vite 7 + Tailwind 4)
+2. **rocr-panel** — Admin panel desktop/mobile app (Svelte 5 + Tauri 2 + Bun)
 
-## Core Requirements
-- Single-page landing site with sections: Hero, Services, Contact, Footer
-- Dark/Light theme support with system preference detection
-- High-end visual effects (WebGL shaders, 3D graphics, animations)
-- Fully responsive design (mobile-first)
-- Accessibility compliant (ARIA labels, semantic HTML)
-- Fast load times via Vite bundling and lazy-loaded assets
+Both projects share the ROCR Digital brand identity and serve complementary purposes.
 
-## Project Goals
-1. Establish a premium, modern digital presence for ROCR Digital
-2. Showcase the agency's capabilities through the site's own design and technology
-3. Provide clear information about services offered (9 service categories)
-4. Enable visitor contact and engagement
-5. Demonstrate technical excellence with advanced visual effects
+---
 
-## Target Audience
-- Potential clients seeking digital agency services (design, development, AI, branding)
-- Business decision-makers evaluating digital partners
-- Technical audiences who appreciate craft and attention to detail
+## Project 1: rocr-landing (Web Application)
 
-## Brand Identity
+### Overview
+Modern, visually rich multi-page landing website. Frontend-only React application featuring WebGL shader background (ColorBends), scroll animations (FadeIn + Lenis), and full dark/light theme support.
+
+### Core Requirements
+- 6-route multi-page site: Home, Partners, Services, About, Contact, Site Map
+- Dark/Light theme with system preference detection + localStorage persistence
+- WebGL shader background (ColorBends via Three.js custom GLSL)
+- Fully responsive (mobile-first, Tailwind breakpoints)
+- Accessibility (ARIA labels, semantic HTML, keyboard navigable)
+- Code splitting (React.lazy, manual vendor chunks)
+- SEO (react-helmet-async on all 6 pages)
+
+### Current Status: Polish & Production
+- All 6 pages fully implemented and functional
+- 22 components (12 active, 10 unused animation components available)
+- 7 real partner logos with dark/white SVG variants
+- 9 service categories with expanded detail views
+- Remaining: Contact form backend, Google Maps, deployment, Lighthouse audit
+
+---
+
+## Project 2: rocr-panel (Admin Panel)
+
+### Overview
+Cross-platform admin panel built with Svelte 5, Tauri 2, and Bun. Compiles to native apps (.exe, .dmg, .apk). Manages all data from the rocr-landing website. Uses Svelte 5 runes syntax ($state, $derived, $props, $bindable).
+
+### Core Requirements
+- Desktop: Windows (.exe/.msi), macOS (.dmg/.app), Linux (.deb/.AppImage)
+- Mobile: Android (.apk/.aab)
+- 7 admin modules: Dashboard, Contacts, Partners, Services, Content, Team, Settings
+- Theme system matching rocr-landing brand (dark/light with same design tokens)
+- Local data persistence via Tauri Rust commands (app data directory)
+- GitHub Actions CI/CD for automated multi-platform releases
+
+### Tech Stack
+- **Frontend:** Svelte 5 (runes) + Vite 6 + TailwindCSS 4
+- **Backend/Runtime:** Tauri 2 (Rust) with 3 commands: read_data, write_data, export_data
+- **Routing:** svelte-spa-router (hash-based SPA)
+- **Icons:** lucide-svelte (consistent with rocr-landing's lucide-react)
+- **Package Manager:** Bun
+- **CI/CD:** GitHub Actions + tauri-apps/tauri-action@v0
+
+### Data Model
+- **Contacts:** id, name, email, subject, message, status (unread/read/replied/archived), date
+- **Partners:** id, name, description, tags[]
+- **Services:** id, title, description, features[], active (boolean)
+- **Content:** hero {headline, subheadline}, about {description, mission, vision}, stats {projects, clients, years, services}, values[]
+- **Team:** id, name, role, group (Founders & Leadership / Design Studio / Engineering Lab), description
+
+---
+
+## Shared Context
+
+### Brand Identity
 - **Brand Name:** ROCR Digital
-- **Location:** Teknokent Ar-Ge 2 Uluğbey Binası, No:3A/31, Konyaaltı/Antalya, Türkiye
-- **Color Palette:** Blue (#00b7ff / #0071e3), Purple (#a020f0), Orange (#ff7a00)
-- **Typography:** Custom font family (Regular, Medium, SemiBold, Bold .otf files)
+- **Location:** Teknokent Ar-Ge 2 Ulugbey Binasi, No:3A/31, Konyaalti/Antalya, Turkiye
+- **Color Palette:** Primary Blue (#00b7ff / #0071e3), Purple (#a020f0), Orange (#ff7a00)
+- **Dark BG:** #050505 (landing) / #0a0a0a (panel)
+- **Light BG:** #f7f8fa
 - **Default Theme:** Dark mode
 
-## Scope
-- Frontend-only application (no backend/API)
-- Landing page with informational content
-- No user authentication or dynamic data
-- Static deployment target
+### Repository Structure (Actual)
+```
+rocrdigital/
+├── memory-bank/               # 6 documentation files
+│   ├── projectbrief.md
+│   ├── productContext.md
+│   ├── systemPatterns.md
+│   ├── techContext.md
+│   ├── activeContext.md
+│   └── progress.md
+├── rocr-landing/              # React web app (installed, built)
+│   ├── src/                   # 6 pages, 22 components, context, config, lib
+│   ├── public/                # fonts, partners SVGs, logos, icons
+│   ├── dist/                  # production build output
+│   ├── package.json
+│   └── vite.config.js
+├── rocr-panel/                # Svelte + Tauri admin panel (scaffolded, not yet installed)
+│   ├── src/                   # 7 pages, 6 components, 2 stores, utils
+│   ├── src-tauri/             # Rust backend (3 commands, capabilities, config)
+│   ├── package.json
+│   ├── vite.config.js
+│   └── svelte.config.js
+├── .github/
+│   └── workflows/
+│       └── release-panel.yml  # Multi-platform build + Android APK
+└── AGENTS.md
+```
