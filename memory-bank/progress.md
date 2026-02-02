@@ -38,10 +38,10 @@
 - [x] **Content finalization** — Footer linkleri gercek rotalara guncellendi (`/services`, `/partners`, `/about`, `/contact`)
 - [x] **Real partner logos** — 7 gercek partner logosu tema bazli (dark/white): Anatolicus, Antalyaspor, EventPlus, HostDirekt, IBU, Maras Ceviz, MICE
 - [x] **Service icons** — Kaldırıldı (intentional design decision)
-- [ ] **Code splitting** — Bundle size optimizasyonu icin dynamic imports (Three.js/ColorBends)
-- [ ] **Mobile menu animation** — Daha smooth acilis/kapanis animasyonu
+- [x] **Code splitting** — React.lazy() for pages, lazy ColorBends, manualChunks for vendors (Three.js: 471KB ayrı chunk)
+- [x] **Mobile menu animation** — Hamburger→X morphing, slide-down panel, staggered item animations
 - [ ] **Contact form functionality** — Form submission backend entegrasyonu (Formspree, Netlify Forms)
-- [ ] **Social media links** — ContactPage'deki sosyal medya linkleri placeholder
+- [x] **Social media links** — ContactPage'deki LinkedIn, X, Instagram, GitHub linkleri eklendi
 - [ ] **Google Maps entegrasyonu** — Contact sayfasinda harita
 - [ ] **Deployment** — Build configuration, hosting setup (Vercel/Netlify)
 - [ ] **Performance audit** — Lighthouse skorlari, Core Web Vitals optimizasyonu

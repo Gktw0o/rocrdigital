@@ -4,10 +4,10 @@ import { useTheme } from "../context/ThemeContext";
 import FadeIn from "../components/FadeIn";
 
 const socialLinks = [
-  { label: "LinkedIn", href: "#" },
-  { label: "Twitter / X", href: "#" },
-  { label: "Instagram", href: "#" },
-  { label: "GitHub", href: "#" },
+  { label: "LinkedIn", href: "https://linkedin.com/company/rocrdigital" },
+  { label: "Twitter / X", href: "https://x.com/rocrdigital" },
+  { label: "Instagram", href: "https://instagram.com/rocrdigital" },
+  { label: "GitHub", href: "https://github.com/rocrdigital" },
 ];
 
 export default function ContactPage() {
@@ -162,7 +162,13 @@ export default function ContactPage() {
               <h3 className={`text-sm font-semibold ${titleClass}`}>Follow Us</h3>
               <div className="mt-2 flex flex-wrap gap-3">
                 {socialLinks.map((link, i) => (
-                  <a key={i} href={link.href} className={`text-sm ${linkClass}`}>
+                  <a
+                    key={i}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`text-sm ${linkClass}`}
+                  >
                     {link.label}
                   </a>
                 ))}

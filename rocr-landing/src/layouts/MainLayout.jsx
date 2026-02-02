@@ -1,10 +1,12 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, Suspense, lazy } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Lenis from "lenis";
 import Navbar from "../components/Navbar";
-import ColorBends from "../components/ColorBends";
 import Footer from "../components/Footer";
 import { useTheme } from "../context/ThemeContext";
+
+// Lazy load ColorBends (Three.js) - this is the largest dependency
+const ColorBends = lazy(() => import("../components/ColorBends"));
 
 export default function MainLayout() {
   const { theme } = useTheme();
@@ -48,26 +50,28 @@ export default function MainLayout() {
   return (
     <>
       <div className="fixed inset-0 -y-20 z-0 pointer-events-none">
-        <ColorBends
-          className="w-full h-full"
-          pointerTarget="window"
-          transparent={true}
-          autoRotate={0}
-          rotation={23}
-          scale={2}
-          speed={1}
-          frequency={1}
-          warpStrength={1}
-          mouseInfluence={1}
-          parallax={0}
-          noise={0}
-          colors={bendColors}
-        />
+        <Suspense fallback={null}>
+          <ColorBends
+            className="w-full h-full"
+            pointerTarget="window"
+            transparent={true}
+            autoRotate={0}
+            rotation={23}
+            scale={2}
+            speed={1}
+            frequency={1}
+            warpStrength={1}
+            mouseInfluence={1}
+            parallax={0}
+            noise={0}
+            colors={bendColors}
+          />
+        </Suspense>
       </div>
 
       {showScrim && (
         <div
-          className="readability-scrim fixed inset-0 z-[1] pointer-events-none bg-black/50"
+          className="readability-scrim fixed inset-0 z-1 pointer-events-none bg-black/50"
           aria-hidden="true"
         />
       )}

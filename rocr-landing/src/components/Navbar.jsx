@@ -12,6 +12,7 @@ const NAV_LINKS = [
 
 const Navbar = () => {
     const [open, setOpen] = useState(false);
+    const [isAnimating, setIsAnimating] = useState(false);
     const { theme, toggleTheme } = useTheme();
     const location = useLocation();
     const logoSrc = theme === "light" ? "/logo-v3-black.svg" : "/logo-v3-white.svg";
@@ -23,8 +24,34 @@ const Navbar = () => {
 
     // Close mobile menu on route change
     useEffect(() => {
-        setOpen(false);
+        if (open) {
+            setIsAnimating(true);
+            setOpen(false);
+            setTimeout(() => setIsAnimating(false), 300);
+        }
     }, [location.pathname]);
+
+    // Prevent body scroll when menu is open
+    useEffect(() => {
+        if (open) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "";
+        }
+        return () => {
+            document.body.style.overflow = "";
+        };
+    }, [open]);
+
+    const handleToggle = () => {
+        if (open) {
+            setIsAnimating(true);
+            setOpen(false);
+            setTimeout(() => setIsAnimating(false), 300);
+        } else {
+            setOpen(true);
+        }
+    };
 
     const containerClass =
         theme === "light"
@@ -48,18 +75,18 @@ const Navbar = () => {
 
     const mobilePanelClass =
         theme === "light"
-            ? "rounded-2xl border border-black/10 bg-white/80 backdrop-blur-md p-3"
-            : "rounded-2xl border border-white/10 bg-black/50 backdrop-blur-md p-3";
+            ? "rounded-2xl border border-black/10 bg-white/95 backdrop-blur-xl shadow-xl"
+            : "rounded-2xl border border-white/10 bg-black/90 backdrop-blur-xl shadow-xl";
 
     const mobileLinkClass =
         theme === "light"
-            ? "block rounded-xl px-3 py-2 text-black/80 hover:bg-black/5 hover:text-black transition-colors"
-            : "block rounded-xl px-3 py-2 text-white/90 hover:bg-white/10 hover:text-white transition-colors";
+            ? "block rounded-xl px-4 py-3 text-black/80 hover:bg-black/5 hover:text-black transition-all duration-200"
+            : "block rounded-xl px-4 py-3 text-white/90 hover:bg-white/10 hover:text-white transition-all duration-200";
 
     const mobileCtaClass =
         theme === "light"
-            ? "block rounded-xl bg-black text-white px-3 py-2 text-center font-semibold"
-            : "block rounded-xl bg-white text-black px-3 py-2 text-center font-semibold";
+            ? "block rounded-xl bg-black text-white px-4 py-3 text-center font-semibold hover:bg-black/90 transition-colors"
+            : "block rounded-xl bg-white text-black px-4 py-3 text-center font-semibold hover:bg-white/90 transition-colors";
 
     return (
         <header className="fixed top-0 left-0 right-0 z-50">
@@ -102,58 +129,89 @@ const Navbar = () => {
                             )}
                         </button>
 
+                        {/* Animated Hamburger Button */}
                         <button
                             type="button"
                             aria-label="Toggle Menu"
                             aria-expanded={open}
-                            onClick={() => setOpen((v) => !v)}
-                            className={`md:hidden ${iconBtnClass}`}
+                            onClick={handleToggle}
+                            className={`md:hidden ${iconBtnClass} relative`}
                         >
-                            <svg
-                                width="20"
-                                height="20"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                className="block"
-                            >
-                                <path
-                                    d="M4 6h16M4 12h16M4 18h16"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
+                            <div className="w-5 h-5 flex flex-col justify-center items-center">
+                                <span
+                                    className={`block h-0.5 w-4 bg-current transform transition-all duration-300 ease-out ${
+                                        open ? "rotate-45 translate-y-0.5" : "-translate-y-1"
+                                    }`}
                                 />
-                            </svg>
+                                <span
+                                    className={`block h-0.5 w-4 bg-current transition-all duration-300 ease-out ${
+                                        open ? "opacity-0 scale-0" : "opacity-100"
+                                    }`}
+                                />
+                                <span
+                                    className={`block h-0.5 w-4 bg-current transform transition-all duration-300 ease-out ${
+                                        open ? "-rotate-45 -translate-y-0.5" : "translate-y-1"
+                                    }`}
+                                />
+                            </div>
                         </button>
                     </div>
                 </div>
 
-                {open && (
-                    <div className={`md:hidden mt-2 ${mobilePanelClass}`}>
-                        <ul className="flex flex-col gap-2">
-                            {NAV_LINKS.map((link) => (
-                                <li key={link.to}>
+                {/* Mobile Menu with Animations */}
+                <div
+                    className={`md:hidden mt-2 overflow-hidden transition-all duration-300 ease-out ${
+                        open
+                            ? "max-h-[500px] opacity-100 translate-y-0"
+                            : isAnimating
+                            ? "max-h-0 opacity-0 -translate-y-2"
+                            : "max-h-0 opacity-0 -translate-y-2 pointer-events-none"
+                    }`}
+                >
+                    <div className={`p-4 ${mobilePanelClass}`}>
+                        <ul className="flex flex-col gap-1">
+                            {NAV_LINKS.map((link, index) => (
+                                <li
+                                    key={link.to}
+                                    className="transform transition-all duration-300 ease-out"
+                                    style={{
+                                        transitionDelay: open ? `${index * 50}ms` : "0ms",
+                                        opacity: open ? 1 : 0,
+                                        transform: open ? "translateX(0)" : "translateX(-10px)",
+                                    }}
+                                >
                                     <Link
                                         to={link.to}
                                         className={mobileLinkClass}
+                                        onClick={() => handleToggle()}
                                     >
                                         {link.label}
                                     </Link>
                                 </li>
                             ))}
-                            <li className="pt-2">
+                            <li
+                                className="pt-3 transform transition-all duration-300 ease-out"
+                                style={{
+                                    transitionDelay: open ? `${NAV_LINKS.length * 50}ms` : "0ms",
+                                    opacity: open ? 1 : 0,
+                                    transform: open ? "translateY(0)" : "translateY(10px)",
+                                }}
+                            >
                                 <Link
                                     to="/contact"
                                     className={mobileCtaClass}
+                                    onClick={() => handleToggle()}
                                 >
                                     Get Started
                                 </Link>
                             </li>
                         </ul>
                     </div>
-                )}
+                </div>
             </nav>
         </header>
     );
 };
 
 export default Navbar;
+
