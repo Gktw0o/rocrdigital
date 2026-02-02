@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import SEO from "../components/SEO";
 import { useTheme } from "../context/ThemeContext";
 import FadeIn from "../components/FadeIn";
 
@@ -51,6 +52,11 @@ export default function ContactPage() {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6 lg:px-8 space-y-12">
+      <SEO
+        title="Contact"
+        description="Get in touch with ROCR Digital. Send us a message, visit our office in Antalya, or connect on social media. We'd love to hear about your project."
+        path="/contact"
+      />
       {/* Header */}
       <FadeIn>
         <div className="text-center">

@@ -23,3 +23,11 @@ dist-ssr
 *.sln
 *.sw?
 null
+bun.lock
+.env
+*bun.lock
+*node_modules
+*dist
+./bun.lock
+.bun.lock
+nul

@@ -1,4 +1,5 @@
 import React from "react";
+import SEO from "../components/SEO";
 import Hero from "../components/Hero";
 import Partners from "../components/Partners";
 import Services from "../components/Services";
@@ -9,6 +10,11 @@ import FadeIn from "../components/FadeIn";
 export default function HomePage() {
   return (
     <>
+      <SEO
+        title="Digital Agency"
+        description="ROCR Digital is a full-service digital agency specializing in web experiences, AI automation, brand identity, and cloud solutions. Based in Antalya, Türkiye."
+        path="/"
+      />
       <Hero title="Your Digital Agency" />
 
       <FadeIn delay={0.1}>

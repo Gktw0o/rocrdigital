@@ -2,68 +2,66 @@
 
 ## Architecture
 
-### Current: Single-Page Application
-Landing page with all sections in one page, anchor-based navigation, Lenis smooth scroll.
+### Current: Multi-Page Application with React Router
+Full multi-page site with 6 routes, shared layout, and client-side navigation.
 
-```
-main.jsx → ThemeProvider → App.jsx (+ Lenis smooth scroll)
-  ├── ColorBends (fixed background, z-0)
-  ├── Readability Scrim (dark mode only, z-1) ← BUG: no styling applied
-  └── <main> (z-10)
-      ├── Navbar (fixed, z-50)
-      ├── Hero
-      ├── FadeIn → Partners (LogoLoop carousel)
-      ├── FadeIn → Services (9-card grid)
-      ├── FadeIn → About (stats + values)
-      ├── FadeIn → Contact
-      └── Footer
-```
-
-### Planned: Multi-Page with React Router
 ```
 main.jsx → BrowserRouter → ThemeProvider → App.jsx
   └── Routes
-      ├── MainLayout (Navbar + ColorBends + Scrim + Footer)
-      │   ├── / → HomePage (mevcut landing page)
-      │   ├── /partners → PartnersPage
-      │   ├── /services → ServicesPage
-      │   ├── /about → AboutPage
-      │   ├── /contact → ContactPage
-      │   └── /site-map → SiteMapPage
-      └── 404 → NotFound (optional)
+      └── MainLayout (Navbar + ColorBends + Scrim + <Outlet> + Footer)
+          ├── / → HomePage (landing page with sections)
+          ├── /partners → PartnersPage
+          ├── /services → ServicesPage
+          ├── /about → AboutPage
+          ├── /contact → ContactPage
+          └── /site-map → SiteMapPage
 ```
 
-### Planned File Structure
+### MainLayout Structure
+```
+MainLayout.jsx
+├── ColorBends (fixed background, z-0, pointer-events-none)
+├── Readability Scrim (dark mode only, z-1, bg-black/50)
+└── <main> (z-10, pt-24)
+    ├── Navbar (fixed, z-50)
+    ├── <Outlet /> (page content)
+    └── Footer
+```
+
+### Current File Structure
 ```
 src/
 ├── pages/                  # Route-level page components
-│   ├── HomePage.jsx        # Mevcut landing content
-│   ├── PartnersPage.jsx    # /partners
-│   ├── ServicesPage.jsx    # /services
-│   ├── AboutPage.jsx       # /about
-│   ├── ContactPage.jsx     # /contact
-│   └── SiteMapPage.jsx     # /site-map
+│   ├── HomePage.jsx        # Landing: Hero + Partners + Services + About + Contact
+│   ├── PartnersPage.jsx    # /partners — partner details, case studies
+│   ├── ServicesPage.jsx    # /services — 9 service categories expanded
+│   ├── AboutPage.jsx       # /about — team, mission, values
+│   ├── ContactPage.jsx     # /contact — contact info, form
+│   └── SiteMapPage.jsx     # /site-map — HTML sitemap for SEO
 ├── layouts/
 │   └── MainLayout.jsx      # Shared: Navbar + ColorBends + Scrim + <Outlet/> + Footer
-├── components/             # Reusable section & UI components
-│   ├── FadeIn.jsx
-│   ├── Partners.jsx        # Section component (reusable in HomePage & PartnersPage)
-│   ├── Services.jsx
-│   ├── About.jsx
-│   ├── Contact.jsx
-│   ├── Hero.jsx
-│   ├── ColorBends.jsx
-│   ├── LogoLoop.jsx
-│   └── ...
+├── components/             # Reusable section & UI components (20 files)
+│   ├── Navbar.jsx          # React Router Links, theme toggle, mobile menu
+│   ├── Hero.jsx            # Landing hero with TitleGraphic
+│   ├── Partners.jsx        # Partner carousel section
+│   ├── Services.jsx        # 9-card service grid section
+│   ├── About.jsx           # Stats + values section
+│   ├── Contact.jsx         # Contact info section
+│   ├── Footer.jsx          # Site footer with links
+│   ├── ColorBends.jsx      # Three.js WebGL shader background
+│   ├── FadeIn.jsx          # motion/react scroll animation wrapper
+│   ├── LogoLoop.jsx        # Infinite scrolling carousel
+│   ├── TitleGraphic.jsx    # Gradient text effect
+│   └── ...                 # Other effect components (BlurText, FluidGlass, etc.)
 ├── context/
-│   └── ThemeContext.jsx
+│   └── ThemeContext.jsx    # Theme state + toggle + localStorage
 ├── config/
-│   └── site.js
+│   └── site.js             # Site configuration constants
 ├── lib/
-│   └── utils.js
-├── main.jsx                # BrowserRouter entry point
-├── App.jsx                 # Routes + Lenis init
-└── index.css
+│   └── utils.js            # Utility functions (cn, etc.)
+├── main.jsx                # BrowserRouter + ThemeProvider entry
+├── App.jsx                 # Routes definition
+└── index.css               # Global styles + Tailwind
 ```
 
 ## Key Technical Decisions

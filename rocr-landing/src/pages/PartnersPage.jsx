@@ -1,4 +1,5 @@
 import React from "react";
+import SEO from "../components/SEO";
 import { useTheme } from "../context/ThemeContext";
 import { LogoLoop } from "../components/LogoLoop";
 import FadeIn from "../components/FadeIn";
@@ -77,6 +78,11 @@ export default function PartnersPage() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8 space-y-12">
+      <SEO
+        title="Partners"
+        description="Discover our trusted partners and collaborations. We work with forward-thinking companies across industries to deliver measurable impact through digital solutions."
+        path="/partners"
+      />
       {/* Header */}
       <FadeIn>
         <div className="text-center">

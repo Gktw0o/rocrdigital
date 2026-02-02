@@ -11,59 +11,48 @@ const defaultDisclaimers = [
 
 const defaultGroups = [
   {
-    heading: "Shop and Learn",
+    heading: "Services",
     links: [
-      { label: "Services", href: "#" },
-      { label: "AI & Automation", href: "#" },
-      { label: "Web Experiences", href: "#" },
-      { label: "Brand & Identity", href: "#" },
-      { label: "Cloud & DevOps", href: "#" },
+      { label: "All Services", href: "/services" },
+      { label: "AI & Automation", href: "/services" },
+      { label: "Web Experiences", href: "/services" },
+      { label: "Brand & Identity", href: "/services" },
+      { label: "Cloud & DevOps", href: "/services" },
     ],
   },
   {
-    heading: "Account",
+    heading: "Company",
     links: [
-      { label: "Manage Your Account", href: "#" },
-      { label: "Orders", href: "#" },
-      { label: "Billing", href: "#" },
-      { label: "Subscriptions", href: "#" },
+      { label: "About Us", href: "/about" },
+      { label: "Our Partners", href: "/partners" },
+      { label: "Careers", href: "/about" },
+      { label: "Contact", href: "/contact" },
     ],
   },
   {
-    heading: "Store",
+    heading: "Resources",
     links: [
-      { label: "Find a Studio", href: "#" },
-      { label: "Consultation", href: "#" },
-      { label: "Business Sales", href: "#" },
-      { label: "Financing", href: "#" },
+      { label: "Partners", href: "/partners" },
+      { label: "Case Studies", href: "/partners" },
+      { label: "Site Map", href: "/site-map" },
     ],
   },
   {
     heading: "For Business",
     links: [
-      { label: `${brand} for Business`, href: "#" },
-      { label: "Partner Program", href: "#" },
-      { label: "Enterprise", href: "#" },
-      { label: "SMB", href: "#" },
-    ],
-  },
-  {
-    heading: "Values",
-    links: [
-      { label: "Accessibility", href: "#" },
-      { label: "Environment", href: "#" },
-      { label: "Privacy", href: "#" },
-      { label: "Inclusion & Diversity", href: "#" },
+      { label: `${brand} for Business`, href: "/services" },
+      { label: "Partner Program", href: "/partners" },
+      { label: "Enterprise Solutions", href: "/services" },
+      { label: "Consultation", href: "/contact" },
     ],
   },
   {
     heading: `About ${brand}`,
     links: [
-      { label: "Newsroom", href: "#" },
-      { label: "Careers", href: "#" },
-      { label: "Investors", href: "#" },
-      { label: "Ethics & Compliance", href: "#" },
-      { label: "Events", href: "#" },
+      { label: "Our Story", href: "/about" },
+      { label: "Team", href: "/about" },
+      { label: "Mission & Vision", href: "/about" },
+      { label: "Contact Us", href: "/contact" },
     ],
   },
 ];
@@ -73,7 +62,7 @@ const defaultLegalLinks = [
   { label: "Terms of Use", href: "#" },
   { label: "Sales and Refunds", href: "#" },
   { label: "Legal", href: "#" },
-  { label: "Site Map", href: "#" },
+  { label: "Site Map", href: "/site-map" },
 ];
 
 export default function Footer({
@@ -152,11 +141,11 @@ export default function Footer({
         <div className="flex flex-col items-start justify-between gap-3 md:flex-row">
           <p className={`text-sm ${subtleClass}`}>
             More ways to work with {brand}:{" "}
-            <a href="#" className={`underline underline-offset-2 ${linkClass}`}>
+            <a href="/partners" className={`underline underline-offset-2 ${linkClass}`}>
               find a partner
             </a>{" "}
             or{" "}
-            <a href="#" className={`underline underline-offset-2 ${linkClass}`}>
+            <a href="/contact" className={`underline underline-offset-2 ${linkClass}`}>
               contact a specialist
             </a>
             .

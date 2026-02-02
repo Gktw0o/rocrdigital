@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import SEO from "../components/SEO";
 import { useTheme } from "../context/ThemeContext";
 import FadeIn from "../components/FadeIn";
 
@@ -64,6 +65,11 @@ export default function SiteMapPage() {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6 lg:px-8 space-y-12">
+      <SEO
+        title="Site Map"
+        description="Complete overview of all pages on the ROCR Digital website. Navigate our services, company pages, and legal information."
+        path="/site-map"
+      />
       {/* Header */}
       <FadeIn>
         <div className="text-center">

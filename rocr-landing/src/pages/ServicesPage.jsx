@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import SEO from "../components/SEO";
 import { useTheme } from "../context/ThemeContext";
 import FadeIn from "../components/FadeIn";
 
@@ -127,6 +128,11 @@ export default function ServicesPage() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8 space-y-12">
+      <SEO
+        title="Services"
+        description="Explore our 9 core services: Strategy, Brand Identity, Web Development, AI Automation, E-commerce, Content Production, Cloud DevOps, SEO, and Ongoing Support."
+        path="/services"
+      />
       {/* Header */}
       <FadeIn>
         <div className="text-center">

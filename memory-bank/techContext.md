@@ -6,6 +6,7 @@
 |-----------|---------|---------|
 | React | 19.2.0 | UI framework |
 | React DOM | 19.2.0 | DOM rendering |
+| React Router DOM | 7.x | Client-side routing |
 | Vite | 7.2.2 | Build tool & dev server |
 | Tailwind CSS | 4.1.17 | Utility-first CSS |
 | Three.js | 0.181.1 | WebGL 3D graphics |
@@ -82,7 +83,7 @@ bun run lint
 - **Browser targets** — modern browsers with WebGL support required for ColorBends
 - **Custom fonts** — 4 custom .otf font files served from `/public/fonts/`
 - **No TypeScript** — project uses JavaScript with JSX (jsconfig.json for editor support)
-- **No router** — single page with anchor-based navigation
+- **Client-side routing** — React Router DOM with BrowserRouter
 
 ## Static Assets (public/)
 - `fonts/` — Regular, Medium, SemiBold, Bold (.otf)
@@ -92,12 +93,19 @@ bun run lint
 
 ## Dependencies Graph (Key)
 ```
-App.jsx
-├── ThemeContext (context)
-├── ColorBends → three (WebGL)
-├── Navbar → ThemeContext
-├── Hero → ThemeContext, TitleGraphic
-├── Services → ThemeContext
-├── Contact → ThemeContext
-└── Footer → ThemeContext
+main.jsx
+├── BrowserRouter (react-router-dom)
+└── ThemeProvider (context)
+    └── App.jsx (Routes)
+        └── MainLayout
+            ├── ColorBends → three (WebGL)
+            ├── Navbar → ThemeContext, React Router Link
+            ├── <Outlet /> (Page content)
+            │   ├── HomePage → Hero, Partners, Services, About, Contact
+            │   ├── PartnersPage → FadeIn, partner cards
+            │   ├── ServicesPage → FadeIn, service details
+            │   ├── AboutPage → FadeIn, team, mission
+            │   ├── ContactPage → FadeIn, contact form
+            │   └── SiteMapPage → sitemap links
+            └── Footer → ThemeContext
 ```

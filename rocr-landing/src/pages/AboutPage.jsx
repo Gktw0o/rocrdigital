@@ -1,4 +1,5 @@
 import React from "react";
+import SEO from "../components/SEO";
 import { useTheme } from "../context/ThemeContext";
 import FadeIn from "../components/FadeIn";
 
@@ -66,6 +67,11 @@ export default function AboutPage() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8 space-y-12">
+      <SEO
+        title="About"
+        description="Learn about ROCR Digital — a digital agency in Antalya, Türkiye. Meet our team, discover our mission, and see how we deliver design, development, and technology solutions."
+        path="/about"
+      />
       {/* Header */}
       <FadeIn>
         <div className="text-center">
