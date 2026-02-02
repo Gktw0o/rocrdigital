@@ -3,6 +3,9 @@ import SEO from "../components/SEO";
 import { useTheme } from "../context/ThemeContext";
 import FadeIn from "../components/FadeIn";
 
+// API URL - use environment variable in production
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
 const socialLinks = [
   { label: "LinkedIn", href: "https://linkedin.com/company/rocrdigital" },
   { label: "Twitter / X", href: "https://x.com/rocrdigital" },
@@ -18,15 +21,50 @@ export default function ContactPage() {
     subject: "",
     message: "",
   });
+  const [status, setStatus] = useState("idle"); // idle, loading, success, error
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    // Clear error when user starts typing
+    if (status === "error") {
+      setStatus("idle");
+      setErrorMessage("");
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: wire up form submission (API endpoint, email service, etc.)
-    console.log("Form submitted:", formData);
+    setStatus("loading");
+    setErrorMessage("");
+
+    try {
+      const response = await fetch(`${API_URL}/api/v1/contacts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          subject: formData.subject,
+          message: formData.message,
+          source: "landing-contact-form",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to send message");
+      }
+
+      setStatus("success");
+      setFormData({ name: "", email: "", subject: "", message: "" });
+    } catch (error) {
+      setStatus("error");
+      setErrorMessage(error.message || "Something went wrong. Please try again.");
+    }
   };
 
   const shell =
@@ -73,6 +111,25 @@ export default function ContactPage() {
         <FadeIn delay={0.1} className="lg:col-span-3">
           <div className={`p-6 sm:p-8 ${shell}`}>
             <h2 className={`text-lg font-semibold ${titleClass}`}>Send a Message</h2>
+            
+            {/* Success Message */}
+            {status === "success" && (
+              <div className="mt-4 rounded-xl bg-green-500/10 border border-green-500/20 p-4">
+                <p className="text-sm text-green-600 dark:text-green-400">
+                  ✓ Thank you for your message! We'll get back to you soon.
+                </p>
+              </div>
+            )}
+
+            {/* Error Message */}
+            {status === "error" && (
+              <div className="mt-4 rounded-xl bg-red-500/10 border border-red-500/20 p-4">
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  ✗ {errorMessage}
+                </p>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="mt-6 space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <input
@@ -82,6 +139,7 @@ export default function ContactPage() {
                   value={formData.name}
                   onChange={handleChange}
                   required
+                  disabled={status === "loading"}
                   className={inputClass}
                 />
                 <input
@@ -91,6 +149,7 @@ export default function ContactPage() {
                   value={formData.email}
                   onChange={handleChange}
                   required
+                  disabled={status === "loading"}
                   className={inputClass}
                 />
               </div>
@@ -101,6 +160,7 @@ export default function ContactPage() {
                 value={formData.subject}
                 onChange={handleChange}
                 required
+                disabled={status === "loading"}
                 className={inputClass}
               />
               <textarea
@@ -109,11 +169,24 @@ export default function ContactPage() {
                 value={formData.message}
                 onChange={handleChange}
                 required
+                disabled={status === "loading"}
                 rows={5}
                 className={`${inputClass} resize-none`}
               />
-              <button type="submit" className={btnClass}>
-                Send Message
+              <button 
+                type="submit" 
+                disabled={status === "loading"}
+                className={`${btnClass} ${status === "loading" ? "opacity-70 cursor-not-allowed" : ""}`}
+              >
+                {status === "loading" ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Sending...
+                  </span>
+                ) : "Send Message"}
               </button>
             </form>
           </div>

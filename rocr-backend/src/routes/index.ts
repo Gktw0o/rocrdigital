@@ -1,4 +1,10 @@
 export { default as authRouter } from "./auth";
 export { default as usersRouter } from "./users";
 export { default as contactsRouter } from "./contacts";
+export { default as projectsRouter } from "./projects";
+export { default as tasksRouter } from "./tasks";
+export { default as calendarRouter } from "./calendar";
+export { default as scheduleRouter } from "./schedule";
+export { default as timeRouter } from "./time";
+export { default as contentRouter } from "./content";
 export { default as healthRouter } from "./health";

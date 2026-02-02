@@ -15,6 +15,12 @@ import {
   authRouter,
   usersRouter,
   contactsRouter,
+  projectsRouter,
+  tasksRouter,
+  calendarRouter,
+  scheduleRouter,
+  timeRouter,
+  contentRouter,
   healthRouter,
 } from "./routes";
 
@@ -34,11 +40,8 @@ app.use(
   "*",
   cors({
     origin: (origin) => {
-      // Allow requests with no origin (like mobile apps or curl)
       if (!origin) return "*";
-      // Check if origin is in allowed list
       if (allowedOrigins.includes(origin)) return origin;
-      // In development, allow localhost variants
       if (process.env.NODE_ENV !== "production" && origin.includes("localhost")) {
         return origin;
       }
@@ -52,15 +55,21 @@ app.use(
   })
 );
 
-// Error handler (must be before routes)
+// Error handler
 app.use("*", errorHandler);
 
 // API routes
 app.route("/api/v1/auth", authRouter);
 app.route("/api/v1/users", usersRouter);
 app.route("/api/v1/contacts", contactsRouter);
+app.route("/api/v1/projects", projectsRouter);
+app.route("/api/v1/tasks", tasksRouter);
+app.route("/api/v1/calendar", calendarRouter);
+app.route("/api/v1/schedule", scheduleRouter);
+app.route("/api/v1/time", timeRouter);
+app.route("/api/v1/content", contentRouter);
 
-// Health check (no /api/v1 prefix)
+// Health check
 app.route("/health", healthRouter);
 
 // Root endpoint
@@ -79,32 +88,94 @@ app.get("/api/v1", (c) => {
     version: "1.0",
     endpoints: {
       auth: {
-        "POST /api/v1/auth/login": "Login with email and password",
-        "POST /api/v1/auth/refresh": "Refresh access token",
-        "POST /api/v1/auth/logout": "Logout and invalidate tokens",
-        "GET /api/v1/auth/me": "Get current user info",
-        "POST /api/v1/auth/update-password": "Update password",
+        "POST /auth/login": "Login",
+        "POST /auth/logout": "Logout",
+        "POST /auth/refresh": "Refresh token",
+        "GET /auth/me": "Current user",
+        "POST /auth/update-password": "Update password",
       },
       users: {
-        "GET /api/v1/users": "List all users (admin only)",
-        "POST /api/v1/users": "Create new user (admin only)",
-        "GET /api/v1/users/:id": "Get user by ID (admin only)",
-        "PATCH /api/v1/users/:id": "Update user (admin only)",
-        "DELETE /api/v1/users/:id": "Deactivate user (admin only)",
-        "POST /api/v1/users/:id/reset-password": "Reset user password (admin only)",
+        "GET /users": "List users (admin)",
+        "POST /users": "Create user (admin)",
+        "GET /users/:id": "Get user (admin)",
+        "PATCH /users/:id": "Update user (admin)",
+        "DELETE /users/:id": "Deactivate user (admin)",
       },
       contacts: {
-        "POST /api/v1/contacts": "Submit contact form (public)",
-        "GET /api/v1/contacts": "List contacts (authenticated)",
-        "GET /api/v1/contacts/:id": "Get contact details (authenticated)",
-        "PATCH /api/v1/contacts/:id": "Update contact (authenticated)",
-        "DELETE /api/v1/contacts/:id": "Delete contact (manager+)",
-        "GET /api/v1/contacts/stats/summary": "Get contact stats (authenticated)",
+        "POST /contacts": "Submit contact (public)",
+        "GET /contacts": "List contacts",
+        "GET /contacts/:id": "Get contact",
+        "PATCH /contacts/:id": "Update contact",
+        "DELETE /contacts/:id": "Delete contact",
+      },
+      projects: {
+        "GET /projects": "List projects",
+        "POST /projects": "Create project (manager+)",
+        "GET /projects/:id": "Get project with tasks",
+        "PATCH /projects/:id": "Update project (manager+)",
+        "DELETE /projects/:id": "Archive project (manager+)",
+        "GET /projects/stats/summary": "Project stats",
+      },
+      tasks: {
+        "GET /tasks": "List tasks",
+        "POST /tasks": "Create task",
+        "GET /tasks/:id": "Get task",
+        "PATCH /tasks/:id": "Update task",
+        "DELETE /tasks/:id": "Delete task",
+        "GET /tasks/my/assigned": "My assigned tasks",
+      },
+      calendar: {
+        "GET /calendar/events": "List events",
+        "POST /calendar/events": "Create event",
+        "GET /calendar/events/:id": "Get event",
+        "PATCH /calendar/events/:id": "Update event",
+        "DELETE /calendar/events/:id": "Delete event",
+        "POST /calendar/events/:id/respond": "Respond to invitation",
+        "GET /calendar/my": "My events",
+      },
+      schedule: {
+        "GET /schedule": "My schedule",
+        "PUT /schedule": "Set my schedule",
+        "GET /schedule/user/:userId": "User schedule (manager)",
+        "GET /schedule/availability": "Team availability (manager)",
+        "GET /schedule/off-days": "My off days",
+        "POST /schedule/off-days": "Request off day",
+        "PATCH /schedule/off-days/:id": "Approve/reject (manager)",
+        "DELETE /schedule/off-days/:id": "Cancel request",
+        "GET /schedule/off-days/pending": "Pending requests (manager)",
+      },
+      time: {
+        "POST /time/clock-in": "Clock in",
+        "POST /time/clock-out": "Clock out",
+        "GET /time/status": "Current clock status",
+        "GET /time/entries": "List time entries",
+        "POST /time/entries": "Manual time entry",
+        "PATCH /time/entries/:id": "Update entry",
+        "DELETE /time/entries/:id": "Delete entry",
+        "GET /time/reports": "Time reports",
+        "GET /time/today": "Today's summary",
+      },
+      content: {
+        "GET /content": "All content (public)",
+        "GET /content/:section": "Content section (public)",
+        "PATCH /content/:section": "Update content (manager+)",
+        "GET /content/partners": "Partners (public)",
+        "POST /content/partners": "Create partner (manager+)",
+        "PATCH /content/partners/:id": "Update partner (manager+)",
+        "DELETE /content/partners/:id": "Delete partner (manager+)",
+        "GET /content/services": "Services (public)",
+        "POST /content/services": "Create service (manager+)",
+        "PATCH /content/services/:id": "Update service (manager+)",
+        "DELETE /content/services/:id": "Delete service (manager+)",
+        "GET /content/team/members": "Team members (public)",
+        "POST /content/team/members": "Create member (manager+)",
+        "PATCH /content/team/members/:id": "Update member (manager+)",
+        "DELETE /content/team/members/:id": "Delete member (manager+)",
       },
       health: {
         "GET /health": "Health check",
-        "GET /health/ready": "Readiness check",
-        "GET /health/live": "Liveness check",
+        "GET /health/ready": "Readiness",
+        "GET /health/live": "Liveness",
       },
     },
   });
@@ -125,6 +196,17 @@ console.log(`
 ║   Port: ${port.toString().padEnd(52)}║
 ║   Health: http://localhost:${port}/health                      ║
 ║   API Docs: http://localhost:${port}/api/v1                    ║
+║                                                               ║
+║   Routes:                                                     ║
+║   • Auth          /api/v1/auth                                ║
+║   • Users         /api/v1/users                               ║
+║   • Contacts      /api/v1/contacts                            ║
+║   • Projects      /api/v1/projects                            ║
+║   • Tasks         /api/v1/tasks                               ║
+║   • Calendar      /api/v1/calendar                            ║
+║   • Schedule      /api/v1/schedule                            ║
+║   • Time          /api/v1/time                                ║
+║   • Content       /api/v1/content                             ║
 ║                                                               ║
 ╚═══════════════════════════════════════════════════════════════╝
 `);
