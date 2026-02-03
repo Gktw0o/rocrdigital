@@ -6,6 +6,12 @@
 
   let { collapsed = false } = $props();
   let dropdownOpen = $state(false);
+  let currentUser = $state(null);
+
+  // Subscribe to auth store
+  auth.subscribe((user) => {
+    currentUser = user;
+  });
 
   function handleLogout() {
     auth.logout();
@@ -31,7 +37,7 @@
   }
 </script>
 
-<svelte:window on:click={closeDropdown} />
+<svelte:window onclick={closeDropdown} />
 
 <header
   class="flex h-16 items-center justify-between border-b px-6"
@@ -98,16 +104,16 @@
           class="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white"
           style="background: var(--color-primary);"
         >
-          {getInitials(auth.user?.name)}
+          {getInitials(currentUser?.name)}
         </div>
 
         <!-- Name & Role (hidden on mobile) -->
         <div class="hidden sm:block text-left">
           <p class="text-sm font-medium" style="color: var(--text-primary);">
-            {auth.user?.name || "User"}
+            {currentUser?.name || "User"}
           </p>
           <p class="text-xs capitalize" style="color: var(--text-secondary);">
-            {auth.user?.role || "Member"}
+            {currentUser?.role || "Member"}
           </p>
         </div>
 
@@ -122,10 +128,10 @@
         >
           <div class="px-4 py-2 border-b" style="border-color: var(--border);">
             <p class="text-sm font-medium" style="color: var(--text-primary);">
-              {auth.user?.name}
+              {currentUser?.name}
             </p>
             <p class="text-xs truncate" style="color: var(--text-secondary);">
-              {auth.user?.email}
+              {currentUser?.email}
             </p>
           </div>
 

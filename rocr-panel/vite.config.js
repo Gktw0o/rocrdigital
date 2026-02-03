@@ -4,8 +4,13 @@ import tailwindcss from "@tailwindcss/vite";
 
 const host = process.env.TAURI_DEV_HOST;
 
-export default defineConfig(async () => ({
+export default defineConfig({
   plugins: [svelte(), tailwindcss()],
+
+  // Force browser/client module resolution (fixes Svelte 5 SSR error)
+  resolve: {
+    conditions: ["browser", "development"],
+  },
 
   clearScreen: false,
   server: {
@@ -23,4 +28,4 @@ export default defineConfig(async () => ({
       ignored: ["**/src-tauri/**"],
     },
   },
-}));
+});

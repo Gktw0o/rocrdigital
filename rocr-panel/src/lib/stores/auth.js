@@ -2,19 +2,23 @@
  * Authentication Store for rocr-panel
  * Manages user authentication state, tokens, and API calls
  */
+import { writable, derived, get } from "svelte/store";
 
 // API URL - defaults to localhost for development
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 // Token storage keys
 const ACCESS_TOKEN_KEY = "rocr_access_token";
 const REFRESH_TOKEN_KEY = "rocr_refresh_token";
 const USER_KEY = "rocr_user";
 
-// Reactive state using Svelte 5 runes
-let user = $state(null);
-let isLoading = $state(true);
-let error = $state(null);
+// Create stores
+const userStore = writable(null);
+const isLoadingStore = writable(true);
+const errorStore = writable(null);
+
+// Derived store for isAuthenticated
+const isAuthenticatedStore = derived(userStore, ($user) => !!$user);
 
 // Helper to get stored tokens
 function getStoredTokens() {
@@ -38,9 +42,9 @@ function clearTokens() {
 }
 
 // Make authenticated API request
-async function apiRequest(endpoint, options = {}) {
+export async function apiRequest(endpoint, options = {}) {
   const { accessToken } = getStoredTokens();
-  
+
   const headers = {
     "Content-Type": "application/json",
     ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
@@ -66,54 +70,65 @@ async function apiRequest(endpoint, options = {}) {
 
 // Auth store object
 export const auth = {
-  // Getters
-  get user() { return user; },
-  get isLoading() { return isLoading; },
-  get error() { return error; },
-  get isAuthenticated() { return !!user; },
+  // Subscribe methods for stores
+  subscribe: userStore.subscribe,
   
+  // Getters using get() for current values
+  get user() {
+    return get(userStore);
+  },
+  get isLoading() {
+    return get(isLoadingStore);
+  },
+  get error() {
+    return get(errorStore);
+  },
+  get isAuthenticated() {
+    return get(isAuthenticatedStore);
+  },
+
   // Initialize auth state from storage
   async init() {
-    isLoading = true;
-    error = null;
-    
+    isLoadingStore.set(true);
+    errorStore.set(null);
+
     try {
       const { accessToken } = getStoredTokens();
-      
+
       if (!accessToken) {
-        user = null;
-        isLoading = false;
+        userStore.set(null);
+        isLoadingStore.set(false);
         return false;
       }
 
       // Verify token by getting current user
       const response = await apiRequest("/api/v1/auth/me");
-      
+
       if (response.ok) {
         const data = await response.json();
-        user = data.data;
-        localStorage.setItem(USER_KEY, JSON.stringify(user));
-        isLoading = false;
+        userStore.set(data.data);
+        localStorage.setItem(USER_KEY, JSON.stringify(data.data));
+        isLoadingStore.set(false);
         return true;
       } else {
         // Token invalid, try refresh
         const refreshed = await this.refreshToken();
-        isLoading = false;
+        isLoadingStore.set(false);
         return refreshed;
       }
     } catch (err) {
       console.error("Auth init error:", err);
-      user = null;
+      userStore.set(null);
       clearTokens();
-      isLoading = false;
+      isLoadingStore.set(false);
       return false;
     }
   },
 
   // Login with email and password
   async login(email, password) {
-    isLoading = true;
-    error = null;
+    isLoadingStore.set(true);
+    errorStore.set(null);
 
     try {
       const response = await fetch(`${API_URL}/api/v1/auth/login`, {
@@ -125,21 +140,21 @@ export const auth = {
       const data = await response.json();
 
       if (!response.ok) {
-        error = data.error || "Login failed";
-        isLoading = false;
+        errorStore.set(data.error || "Login failed");
+        isLoadingStore.set(false);
         return false;
       }
 
       // Store tokens and user
       storeTokens(data.data.accessToken, data.data.refreshToken);
-      user = data.data.user;
-      localStorage.setItem(USER_KEY, JSON.stringify(user));
-      
-      isLoading = false;
+      userStore.set(data.data.user);
+      localStorage.setItem(USER_KEY, JSON.stringify(data.data.user));
+
+      isLoadingStore.set(false);
       return true;
     } catch (err) {
-      error = err.message || "Network error";
-      isLoading = false;
+      errorStore.set(err.message || "Network error");
+      isLoadingStore.set(false);
       return false;
     }
   },
@@ -148,7 +163,7 @@ export const auth = {
   async logout() {
     try {
       const { refreshToken } = getStoredTokens();
-      
+
       // Call logout endpoint
       await apiRequest("/api/v1/auth/logout", {
         method: "POST",
@@ -158,8 +173,8 @@ export const auth = {
       // Ignore errors, just clear local state
       console.error("Logout error:", err);
     } finally {
-      user = null;
-      error = null;
+      userStore.set(null);
+      errorStore.set(null);
       clearTokens();
     }
   },
@@ -168,9 +183,9 @@ export const auth = {
   async refreshToken() {
     try {
       const { refreshToken } = getStoredTokens();
-      
+
       if (!refreshToken) {
-        user = null;
+        userStore.set(null);
         return false;
       }
 
@@ -181,26 +196,26 @@ export const auth = {
       });
 
       if (!response.ok) {
-        user = null;
+        userStore.set(null);
         clearTokens();
         return false;
       }
 
       const data = await response.json();
       localStorage.setItem(ACCESS_TOKEN_KEY, data.data.accessToken);
-      
+
       // Reload user data
       const meResponse = await apiRequest("/api/v1/auth/me");
       if (meResponse.ok) {
         const meData = await meResponse.json();
-        user = meData.data;
-        localStorage.setItem(USER_KEY, JSON.stringify(user));
+        userStore.set(meData.data);
+        localStorage.setItem(USER_KEY, JSON.stringify(meData.data));
       }
-      
+
       return true;
     } catch (err) {
       console.error("Token refresh error:", err);
-      user = null;
+      userStore.set(null);
       clearTokens();
       return false;
     }
@@ -208,7 +223,7 @@ export const auth = {
 
   // Update password
   async updatePassword(currentPassword, newPassword) {
-    error = null;
+    errorStore.set(null);
 
     try {
       const response = await apiRequest("/api/v1/auth/update-password", {
@@ -219,7 +234,7 @@ export const auth = {
       const data = await response.json();
 
       if (!response.ok) {
-        error = data.error || "Failed to update password";
+        errorStore.set(data.error || "Failed to update password");
         return false;
       }
 
@@ -227,16 +242,13 @@ export const auth = {
       await this.logout();
       return true;
     } catch (err) {
-      error = err.message || "Network error";
+      errorStore.set(err.message || "Network error");
       return false;
     }
   },
 
   // Clear error
   clearError() {
-    error = null;
+    errorStore.set(null);
   },
 };
-
-// Export API request helper for use in other stores
-export { apiRequest, API_URL };

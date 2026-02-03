@@ -1,143 +1,129 @@
 # Progress — ROCR Digital
 
-**Last Updated:** 2026-02-02
+**Last Updated:** 2026-02-03
 
 ---
 
-## rocr-landing Progress
+## Phase Summary
 
-### What Works ✅
-- [x] All 6 pages implemented
-- [x] WebGL shader background
-- [x] Theme system
-- [x] SEO meta tags
-- [x] Code splitting
-- [x] Mobile responsive
-
-### What's Left
-- [ ] Contact form → backend integration
-- [ ] Deployment
-
-### Status: **Production Ready** 🚀
+| Phase | Status | Completion |
+|-------|--------|------------|
+| 1. Backend API | ✅ Complete | 100% |
+| 2. Panel UI | ✅ Complete | 100% |
+| 3. Frontend Integration | ✅ Complete | 100% |
+| 4. Deployment | 🔄 Next | 0% |
 
 ---
 
-## rocr-panel Progress
+## Phase 3: Frontend Integration ✅
 
-### What Works ✅
-- [x] 7 pages with UI
-- [x] Theme store
-- [x] In-memory data store
+### Completed This Session
 
-### What's Left
-- [ ] Auth implementation
-- [ ] API integration
-- [ ] New CRM modules (Projects, Calendar, Schedule, Time)
+| Task | Status | Notes |
+|------|--------|-------|
+| Svelte 5 SSR Fix | ✅ Done | `resolve.conditions: ["browser"]` |
+| Auth Store | ✅ Done | writable stores pattern |
+| Login Flow | ✅ Done | JWT auth working |
+| Dashboard | ✅ Done | Stats, messages, quick actions |
+| All CRM Pages | ✅ Done | Projects, Calendar, Schedule, Time |
+| API Client | ✅ Done | Full endpoint coverage |
 
-### Status: **UI Base Complete** 🔧
+### Key Technical Fixes
 
----
-
-## rocr-backend Progress
-
-### Phase 1: Foundation ✅ COMPLETE
-- [x] Project scaffolded
-- [x] Railway PostgreSQL deployed
-- [x] 15 database tables created
-- [x] Admin user seeded
-- [x] Auth system working
-- [x] Contacts API tested
-
-### Phase 2: CRM Routes ✅ COMPLETE
-- [x] **Projects routes** (6 endpoints)
-  - List, create, get, update, delete, stats
-- [x] **Tasks routes** (6 endpoints)
-  - List, create, get, update, delete, my-assigned
-- [x] **Calendar routes** (7 endpoints)
-  - Events CRUD, respond to invitation, my events
-- [x] **Schedule routes** (9 endpoints)
-  - My schedule, set schedule, availability, off-days CRUD
-- [x] **Time tracking routes** (9 endpoints)
-  - Clock in/out, status, entries CRUD, reports, today summary
-- [x] **Content routes** (15 endpoints)
-  - Partners CRUD, Services CRUD, Content sections, Team members
-
-### Status: **Full API Complete** ✅
-
----
-
-## API Endpoint Summary
-
-### Total Endpoints: 60+
-
-| Route Group | Endpoints | Status |
-|-------------|-----------|--------|
-| Auth | 5 | ✅ |
-| Users | 6 | ✅ |
-| Contacts | 6 | ✅ |
-| Projects | 6 | ✅ |
-| Tasks | 6 | ✅ |
-| Calendar | 7 | ✅ |
-| Schedule | 9 | ✅ |
-| Time | 9 | ✅ |
-| Content | 15 | ✅ |
-| Health | 3 | ✅ |
-
----
-
-## Files Summary
-
-### rocr-backend Files Created: 33
-
-| Category | Files |
-|----------|-------|
-| Config | 5 (package.json, tsconfig, drizzle, .env, .gitignore) |
-| Schema | 7 (6 modules + index) |
-| Routes | 11 (10 modules + index) |
-| Middleware | 4 (auth, roles, error + index) |
-| Utils | 3 (jwt, password + index) |
-| Entry | 1 (src/index.ts) |
-| Seed | 1 (src/db/seed.ts) |
-| Docs | 1 (README.md) |
-
----
-
-## Quick Reference
-
-### Running Backend
-```bash
-cd rocr-backend
-bun run dev
-# Server: http://localhost:3000
-```
-
-### Test Endpoints
-```powershell
-# Health
-Invoke-RestMethod http://localhost:3000/health
-
-# Login (get token)
-$login = Invoke-RestMethod -Uri "http://localhost:3000/api/v1/auth/login" `
-  -Method POST -ContentType "application/json" `
-  -Body '{"email":"admin@rocrdigital.com","password":"Admin123!"}'
-
-# Use token
-$headers = @{ Authorization = "Bearer $($login.data.accessToken)" }
-Invoke-RestMethod -Uri "http://localhost:3000/api/v1/projects" -Headers $headers
+```javascript
+// vite.config.js - Critical for Svelte 5 + Tauri
+resolve: {
+  conditions: ["browser", "development"],
+}
 ```
 
 ---
 
-## Next Steps
+## What Works Right Now
 
-### Phase 3: Frontend Integration
-1. [ ] rocr-landing: Connect contact form to `/api/v1/contacts`
-2. [ ] rocr-panel: Implement auth store + login page
-3. [ ] rocr-panel: Replace in-memory stores with API calls
-4. [ ] rocr-panel: Add Projects, Calendar, Schedule, Time pages
+### rocr-backend (Port 3000)
+- ✅ All API endpoints functional
+- ✅ JWT authentication
+- ✅ PostgreSQL database
+- ✅ Admin user seeded
 
-### Phase 4: Deployment
-5. [ ] Deploy rocr-backend to Railway (production)
-6. [ ] Deploy rocr-landing to Vercel/Netlify
-7. [ ] Configure production environment variables
-8. [ ] Test cross-platform rocr-panel builds
+### rocr-landing (Port 5173)
+- ✅ All pages rendering
+- ✅ Contact form submits to backend
+- ✅ Responsive design
+
+### rocr-panel (Port 1420)
+- ✅ Tauri desktop app running
+- ✅ Login authentication
+- ✅ Dashboard with stats
+- ✅ All navigation pages
+- ✅ Dark/Light theme toggle
+
+---
+
+## Phase 4: Deployment Checklist
+
+### 1. rocr-backend → Railway
+- [ ] Push to git
+- [ ] Create Railway project
+- [ ] Configure environment variables:
+  - DATABASE_URL
+  - JWT_SECRET
+  - JWT_REFRESH_SECRET
+  - ALLOWED_ORIGINS
+- [ ] Deploy with `railway up`
+
+### 2. rocr-landing → Vercel/Netlify
+- [ ] Build: `bun run build`
+- [ ] Set VITE_API_URL to production backend
+- [ ] Deploy static files
+
+### 3. rocr-panel → Distribution
+- [ ] Build: `bun run tauri build`
+- [ ] Create Windows installer (.msi)
+- [ ] Optional: macOS/Linux builds
+- [ ] Code signing (optional)
+- [ ] Auto-update setup (optional)
+
+---
+
+## File Structure Summary
+
+```
+rocrdigital/
+├── rocr-backend/          # Hono API server
+│   ├── src/
+│   │   ├── db/            # Drizzle ORM
+│   │   ├── routes/        # API routes
+│   │   └── utils/         # Helpers
+│   └── index.ts           # Entry point
+│
+├── rocr-landing/          # React marketing site
+│   └── src/
+│       ├── components/
+│       └── pages/
+│
+├── rocr-panel/            # Tauri + Svelte admin
+│   ├── src/
+│   │   ├── lib/
+│   │   │   ├── components/
+│   │   │   ├── pages/
+│   │   │   └── stores/
+│   │   ├── App.svelte
+│   │   └── main.js
+│   └── src-tauri/         # Rust backend
+│
+└── memory-bank/           # Project documentation
+```
+
+---
+
+## Credentials
+
+| Type | Value |
+|------|-------|
+| Admin Email | admin@rocrdigital.com |
+| Admin Password | Admin123! |
+| Backend Dev URL | http://localhost:3000 |
+| Panel Dev URL | http://localhost:1420 |
+| Landing Dev URL | http://localhost:5173 |

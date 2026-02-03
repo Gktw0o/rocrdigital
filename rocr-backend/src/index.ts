@@ -3,12 +3,19 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
 import { prettyJSON } from "hono/pretty-json";
+import { csrf } from "hono/csrf";
 
 // Load environment variables
 import "dotenv/config";
 
 // Import middleware
-import { errorHandler, notFound } from "./middleware";
+import { 
+  errorHandler, 
+  notFound, 
+  generalRateLimiter,
+  authRateLimiter,
+  publicRateLimiter 
+} from "./middleware";
 
 // Import routes
 import {
@@ -32,15 +39,28 @@ const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:5173,ht
   .split(",")
   .map((origin) => origin.trim());
 
-// Global middleware
+// ============================================
+// GLOBAL MIDDLEWARE (Security-focused order)
+// ============================================
+
+// 1. Request logging
 app.use("*", logger());
-app.use("*", secureHeaders());
-app.use("*", prettyJSON());
+
+// 2. Security headers (XSS, clickjacking protection, etc.)
+app.use("*", secureHeaders({
+  xFrameOptions: "DENY",
+  xContentTypeOptions: "nosniff",
+  referrerPolicy: "strict-origin-when-cross-origin",
+  crossOriginOpenerPolicy: "same-origin",
+  crossOriginResourcePolicy: "same-origin",
+}));
+
+// 3. CORS configuration
 app.use(
   "*",
   cors({
     origin: (origin) => {
-      if (!origin) return "*";
+      if (!origin) return null; // Deny requests without origin in production
       if (allowedOrigins.includes(origin)) return origin;
       if (process.env.NODE_ENV !== "production" && origin.includes("localhost")) {
         return origin;
@@ -50,15 +70,34 @@ app.use(
     credentials: true,
     allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-    exposeHeaders: ["Content-Length", "X-Request-Id"],
+    exposeHeaders: ["Content-Length", "X-Request-Id", "X-RateLimit-Limit", "X-RateLimit-Remaining"],
     maxAge: 600,
   })
 );
 
-// Error handler
+// 4. JSON formatting
+app.use("*", prettyJSON());
+
+// 5. Global rate limiter (100 req/min)
+app.use("*", generalRateLimiter);
+
+// 6. Error handler (catches all errors)
 app.use("*", errorHandler);
 
-// API routes
+// ============================================
+// ROUTE-SPECIFIC RATE LIMITERS
+// ============================================
+
+// Strict rate limiting for auth endpoints (5 req/15 min)
+app.use("/api/v1/auth/login", authRateLimiter);
+app.use("/api/v1/auth/refresh", authRateLimiter);
+
+// Public endpoint rate limiting (30 req/min)
+app.use("/api/v1/contacts", publicRateLimiter);
+
+// ============================================
+// API ROUTES
+// ============================================
 app.route("/api/v1/auth", authRouter);
 app.route("/api/v1/users", usersRouter);
 app.route("/api/v1/contacts", contactsRouter);
@@ -69,16 +108,21 @@ app.route("/api/v1/schedule", scheduleRouter);
 app.route("/api/v1/time", timeRouter);
 app.route("/api/v1/content", contentRouter);
 
-// Health check
+// Health check (no rate limiting)
 app.route("/health", healthRouter);
 
 // Root endpoint
 app.get("/", (c) => {
   return c.json({
     name: "ROCR Backend API",
-    version: "0.1.0",
+    version: "0.2.0",
     status: "running",
     documentation: "/api/v1",
+    security: {
+      rateLimit: "enabled",
+      cors: "restricted",
+      securityHeaders: "enabled",
+    },
   });
 });
 
@@ -86,11 +130,19 @@ app.get("/", (c) => {
 app.get("/api/v1", (c) => {
   return c.json({
     version: "1.0",
+    security: {
+      authentication: "JWT Bearer Token",
+      rateLimit: {
+        general: "100 req/min",
+        auth: "5 req/15 min",
+        public: "30 req/min",
+      },
+    },
     endpoints: {
       auth: {
-        "POST /auth/login": "Login",
+        "POST /auth/login": "Login (rate limited)",
         "POST /auth/logout": "Logout",
-        "POST /auth/refresh": "Refresh token",
+        "POST /auth/refresh": "Refresh token (rate limited)",
         "GET /auth/me": "Current user",
         "POST /auth/update-password": "Update password",
       },
@@ -102,7 +154,7 @@ app.get("/api/v1", (c) => {
         "DELETE /users/:id": "Deactivate user (admin)",
       },
       contacts: {
-        "POST /contacts": "Submit contact (public)",
+        "POST /contacts": "Submit contact (public, rate limited)",
         "GET /contacts": "List contacts",
         "GET /contacts/:id": "Get contact",
         "PATCH /contacts/:id": "Update contact",
@@ -197,16 +249,11 @@ console.log(`
 ║   Health: http://localhost:${port}/health                      ║
 ║   API Docs: http://localhost:${port}/api/v1                    ║
 ║                                                               ║
-║   Routes:                                                     ║
-║   • Auth          /api/v1/auth                                ║
-║   • Users         /api/v1/users                               ║
-║   • Contacts      /api/v1/contacts                            ║
-║   • Projects      /api/v1/projects                            ║
-║   • Tasks         /api/v1/tasks                               ║
-║   • Calendar      /api/v1/calendar                            ║
-║   • Schedule      /api/v1/schedule                            ║
-║   • Time          /api/v1/time                                ║
-║   • Content       /api/v1/content                             ║
+║   🔒 Security:                                                ║
+║   • Rate Limiting: Enabled                                    ║
+║   • Security Headers: Enabled                                 ║
+║   • CORS: Restricted                                          ║
+║   • Input Validation: Zod                                     ║
 ║                                                               ║
 ╚═══════════════════════════════════════════════════════════════╝
 `);

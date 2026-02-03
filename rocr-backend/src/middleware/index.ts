@@ -1,3 +1,10 @@
 export { authMiddleware, optionalAuthMiddleware } from "./auth";
-export { requireRole, requireMinRole, adminOnly, managerOnly, employeeOnly } from "./roles";
 export { errorHandler, notFound, AppError } from "./error";
+export { adminOnly, managerOnly, requireRole, type Role } from "./roles";
+export { 
+  rateLimiter, 
+  strictRateLimiter, 
+  authRateLimiter, 
+  generalRateLimiter,
+  publicRateLimiter 
+} from "./rateLimiter";

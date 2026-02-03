@@ -1,376 +1,326 @@
-import { writable, derived } from "svelte/store";
+/**
+ * Data Store - Connected to Backend API
+ * Replaces mock data with real API calls
+ */
+import { writable, derived, get } from "svelte/store";
+import { apiRequest, API_URL } from "./auth.js";
 
-const defaultData = {
-  contacts: [
-    {
-      id: 1,
-      name: "Ahmet Yilmaz",
-      email: "ahmet@example.com",
-      subject: "Web Projesi",
-      message: "Kurumsal web sitemizi yenilemek istiyoruz.",
-      status: "unread",
-      date: "2025-01-15",
-    },
-    {
-      id: 2,
-      name: "Elif Kaya",
-      email: "elif@example.com",
-      subject: "E-ticaret",
-      message: "Online magaza kurmak istiyoruz.",
-      status: "read",
-      date: "2025-01-14",
-    },
-    {
-      id: 3,
-      name: "Mehmet Demir",
-      email: "mehmet@example.com",
-      subject: "SEO Danismanligi",
-      message: "Web sitemizin SEO performansini artirmak istiyoruz.",
-      status: "replied",
-      date: "2025-01-13",
-    },
-  ],
-  partners: [
-    {
-      id: 1,
-      name: "Antalyaspor",
-      description: "Digital Fan Experience Platform",
-      tags: ["Web Experiences", "Content Production"],
-    },
-    {
-      id: 2,
-      name: "HostDirekt",
-      description: "Cloud Infrastructure & DevOps",
-      tags: ["Cloud & DevOps", "Performance & SEO"],
-    },
-    {
-      id: 3,
-      name: "EventPlus",
-      description: "Event Management System",
-      tags: ["AI & Automation", "Web Experiences"],
-    },
-    {
-      id: 4,
-      name: "Anatolicus",
-      description: "E-commerce & Brand Identity",
-      tags: ["Brand & Identity", "E-commerce"],
-    },
-    {
-      id: 5,
-      name: "IBU",
-      description: "Educational Content Platform",
-      tags: ["Content Production", "Strategy & Consulting"],
-    },
-    {
-      id: 6,
-      name: "MICE",
-      description: "Business Intelligence Dashboard",
-      tags: ["Strategy & Consulting", "AI & Automation"],
-    },
-    {
-      id: 7,
-      name: "Maras Ceviz",
-      description: "Brand & Digital Presence",
-      tags: ["Brand & Identity", "Web Experiences"],
-    },
-  ],
-  services: [
-    {
-      id: 1,
-      title: "Strategy & Consulting",
-      description:
-        "Market research, digital transformation, KPI frameworks, stakeholder workshops.",
-      features: [
-        "Market research & competitive analysis",
-        "Digital transformation roadmaps",
-        "KPI frameworks & measurement",
-        "Stakeholder workshops",
-      ],
-      active: true,
-    },
-    {
-      id: 2,
-      title: "Brand & Identity",
-      description:
-        "Logo design, color palettes, typography, brand guidelines, visual identity.",
-      features: [
-        "Logo design & brand marks",
-        "Color palettes & typography",
-        "Brand guidelines",
-        "Visual identity systems",
-      ],
-      active: true,
-    },
-    {
-      id: 3,
-      title: "Web Experiences",
-      description: "Responsive web apps, PWAs, SSR, interactive UI with WebGL.",
-      features: [
-        "Responsive web applications",
-        "Progressive Web Apps",
-        "Server-side rendering",
-        "Interactive UI & WebGL",
-      ],
-      active: true,
-    },
-    {
-      id: 4,
-      title: "AI & Automation",
-      description:
-        "Custom AI chatbots, workflow automation, data integration, ML deployment.",
-      features: [
-        "Custom AI chatbots",
-        "Workflow automation",
-        "Data integration & ETL",
-        "ML model deployment",
-      ],
-      active: true,
-    },
-    {
-      id: 5,
-      title: "E-commerce",
-      description:
-        "Shopify & custom storefronts, payment gateways, subscriptions, CRO.",
-      features: [
-        "Shopify & custom builds",
-        "Payment integrations",
-        "Subscription billing",
-        "Conversion optimization",
-      ],
-      active: true,
-    },
-    {
-      id: 6,
-      title: "Content Production",
-      description:
-        "Video production, motion graphics, photography, social media strategy.",
-      features: [
-        "Video production",
-        "Motion graphics",
-        "Photography & art direction",
-        "Social media strategy",
-      ],
-      active: true,
-    },
-    {
-      id: 7,
-      title: "Cloud & DevOps",
-      description:
-        "AWS/GCP/Azure architecture, CI/CD, Infrastructure as Code, monitoring.",
-      features: [
-        "Cloud architecture",
-        "CI/CD pipelines",
-        "Infrastructure as Code",
-        "Monitoring & alerting",
-      ],
-      active: true,
-    },
-    {
-      id: 8,
-      title: "Performance & SEO",
-      description:
-        "Core Web Vitals, technical SEO, accessibility (WCAG), page speed.",
-      features: [
-        "Core Web Vitals",
-        "Technical SEO audits",
-        "WCAG compliance",
-        "Bundle optimization",
-      ],
-      active: true,
-    },
-    {
-      id: 9,
-      title: "Support & Growth",
-      description:
-        "Monthly retainers, A/B testing, analytics dashboards, feature iteration.",
-      features: [
-        "Support plans",
-        "A/B testing",
-        "Analytics dashboards",
-        "Feature iteration",
-      ],
-      active: true,
-    },
-  ],
-  content: {
-    hero: {
-      headline: "Your Digital Agency",
-      subheadline: "Designed for the Future.",
-    },
-    about: {
-      description:
-        "ROCR Digital is a full-service digital agency based in Antalya, Turkey.",
-      mission:
-        "To empower businesses with cutting-edge digital solutions that drive measurable growth.",
-      vision:
-        "To be the leading digital agency in the region, known for innovation and excellence.",
-    },
-    stats: {
-      projects: "50+",
-      clients: "30+",
-      years: "5+",
-      services: "9",
-    },
-    values: [
-      "Design-First Thinking",
-      "Technical Excellence",
-      "Collaborative Process",
-      "Measurable Impact",
-    ],
-  },
-  team: [
-    {
-      id: 1,
-      name: "Founder 1",
-      role: "CEO & Co-Founder",
-      group: "Founders & Leadership",
-      description: "Visionary leader driving ROCR Digital's strategic direction.",
-    },
-    {
-      id: 2,
-      name: "Founder 2",
-      role: "CTO & Co-Founder",
-      group: "Founders & Leadership",
-      description: "Technical architect behind ROCR Digital's engineering excellence.",
-    },
-    {
-      id: 3,
-      name: "Designer 1",
-      role: "Lead Designer",
-      group: "Design Studio",
-      description: "Creative mind crafting beautiful digital experiences.",
-    },
-    {
-      id: 4,
-      name: "Engineer 1",
-      role: "Senior Developer",
-      group: "Engineering Lab",
-      description: "Full-stack engineer building robust web applications.",
-    },
-  ],
-};
+// ================================================================
+// STORES
+// ================================================================
+
+// Main data store
+const dataStore = writable({
+  contacts: [],
+  partners: [],
+  services: [],
+  content: {},
+  team: [],
+  isLoading: false,
+  error: null,
+});
+
+// Loading states for individual operations
+const loadingStates = writable({
+  contacts: false,
+  partners: false,
+  services: false,
+  content: false,
+  team: false,
+});
+
+// ================================================================
+// API HELPERS
+// ================================================================
+
+async function fetchFromAPI(endpoint) {
+  try {
+    const response = await apiRequest(endpoint);
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`);
+    }
+    const data = await response.json();
+    return data.data || data;
+  } catch (error) {
+    console.error(`Failed to fetch ${endpoint}:`, error);
+    throw error;
+  }
+}
+
+async function postToAPI(endpoint, body) {
+  try {
+    const response = await apiRequest(endpoint, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || `API Error: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Failed to post to ${endpoint}:`, error);
+    throw error;
+  }
+}
+
+async function patchAPI(endpoint, body) {
+  try {
+    const response = await apiRequest(endpoint, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || `API Error: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Failed to patch ${endpoint}:`, error);
+    throw error;
+  }
+}
+
+async function deleteFromAPI(endpoint) {
+  try {
+    const response = await apiRequest(endpoint, {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || `API Error: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Failed to delete ${endpoint}:`, error);
+    throw error;
+  }
+}
+
+// ================================================================
+// DATA STORE WITH API INTEGRATION
+// ================================================================
 
 function createDataStore() {
-  const { subscribe, set, update } = writable(defaultData);
+  const { subscribe, set, update } = dataStore;
 
   return {
     subscribe,
-    set,
-    update,
-
-    // Contact operations
-    addContact(contact) {
-      update((data) => ({
-        ...data,
-        contacts: [
-          ...data.contacts,
-          { ...contact, id: Date.now(), date: new Date().toISOString().split("T")[0], status: "unread" },
-        ],
-      }));
-    },
-    updateContact(id, updates) {
-      update((data) => ({
-        ...data,
-        contacts: data.contacts.map((c) =>
-          c.id === id ? { ...c, ...updates } : c
-        ),
-      }));
-    },
-    deleteContact(id) {
-      update((data) => ({
-        ...data,
-        contacts: data.contacts.filter((c) => c.id !== id),
-      }));
+    
+    // ============================================
+    // INITIALIZATION - Load all data from API
+    // ============================================
+    async init() {
+      update(d => ({ ...d, isLoading: true, error: null }));
+      
+      try {
+        await Promise.all([
+          this.loadContacts(),
+          this.loadPartners(),
+          this.loadServices(),
+          this.loadTeam(),
+        ]);
+      } catch (error) {
+        update(d => ({ ...d, error: error.message }));
+      } finally {
+        update(d => ({ ...d, isLoading: false }));
+      }
     },
 
-    // Partner operations
-    addPartner(partner) {
-      update((data) => ({
-        ...data,
-        partners: [...data.partners, { ...partner, id: Date.now() }],
-      }));
-    },
-    updatePartner(id, updates) {
-      update((data) => ({
-        ...data,
-        partners: data.partners.map((p) =>
-          p.id === id ? { ...p, ...updates } : p
-        ),
-      }));
-    },
-    deletePartner(id) {
-      update((data) => ({
-        ...data,
-        partners: data.partners.filter((p) => p.id !== id),
-      }));
+    // ============================================
+    // CONTACTS
+    // ============================================
+    async loadContacts() {
+      loadingStates.update(s => ({ ...s, contacts: true }));
+      try {
+        const contacts = await fetchFromAPI("/api/v1/contacts");
+        update(d => ({ ...d, contacts: Array.isArray(contacts) ? contacts : contacts.data || [] }));
+      } finally {
+        loadingStates.update(s => ({ ...s, contacts: false }));
+      }
     },
 
-    // Service operations
-    updateService(id, updates) {
-      update((data) => ({
-        ...data,
-        services: data.services.map((s) =>
-          s.id === id ? { ...s, ...updates } : s
-        ),
+    async updateContact(id, updates) {
+      const result = await patchAPI(`/api/v1/contacts/${id}`, updates);
+      update(d => ({
+        ...d,
+        contacts: d.contacts.map(c => c.id === id ? { ...c, ...result.data } : c),
       }));
+      return result;
     },
-    toggleService(id) {
-      update((data) => ({
-        ...data,
-        services: data.services.map((s) =>
-          s.id === id ? { ...s, active: !s.active } : s
-        ),
+
+    async deleteContact(id) {
+      await deleteFromAPI(`/api/v1/contacts/${id}`);
+      update(d => ({
+        ...d,
+        contacts: d.contacts.filter(c => c.id !== id),
       }));
     },
 
-    // Content operations
-    updateContent(section, value) {
-      update((data) => ({
-        ...data,
-        content: { ...data.content, [section]: value },
+    // ============================================
+    // PARTNERS
+    // ============================================
+    async loadPartners() {
+      loadingStates.update(s => ({ ...s, partners: true }));
+      try {
+        const partners = await fetchFromAPI("/api/v1/content/partners");
+        update(d => ({ ...d, partners: Array.isArray(partners) ? partners : [] }));
+      } finally {
+        loadingStates.update(s => ({ ...s, partners: false }));
+      }
+    },
+
+    async addPartner(partner) {
+      const result = await postToAPI("/api/v1/content/partners", partner);
+      update(d => ({
+        ...d,
+        partners: [...d.partners, result.data],
+      }));
+      return result;
+    },
+
+    async updatePartner(id, updates) {
+      const result = await patchAPI(`/api/v1/content/partners/${id}`, updates);
+      update(d => ({
+        ...d,
+        partners: d.partners.map(p => p.id === id ? { ...p, ...result.data } : p),
+      }));
+      return result;
+    },
+
+    async deletePartner(id) {
+      await deleteFromAPI(`/api/v1/content/partners/${id}`);
+      update(d => ({
+        ...d,
+        partners: d.partners.filter(p => p.id !== id),
       }));
     },
 
-    // Team operations
-    addTeamMember(member) {
-      update((data) => ({
-        ...data,
-        team: [...data.team, { ...member, id: Date.now() }],
+    // ============================================
+    // SERVICES
+    // ============================================
+    async loadServices() {
+      loadingStates.update(s => ({ ...s, services: true }));
+      try {
+        const services = await fetchFromAPI("/api/v1/content/services");
+        update(d => ({ ...d, services: Array.isArray(services) ? services : [] }));
+      } finally {
+        loadingStates.update(s => ({ ...s, services: false }));
+      }
+    },
+
+    async updateService(id, updates) {
+      const result = await patchAPI(`/api/v1/content/services/${id}`, updates);
+      update(d => ({
+        ...d,
+        services: d.services.map(s => s.id === id ? { ...s, ...result.data } : s),
+      }));
+      return result;
+    },
+
+    async toggleService(id) {
+      const current = get(dataStore);
+      const service = current.services.find(s => s.id === id);
+      if (service) {
+        return this.updateService(id, { active: !service.active });
+      }
+    },
+
+    // ============================================
+    // CONTENT
+    // ============================================
+    async loadContent() {
+      loadingStates.update(s => ({ ...s, content: true }));
+      try {
+        const content = await fetchFromAPI("/api/v1/content");
+        update(d => ({ ...d, content: content || {} }));
+      } finally {
+        loadingStates.update(s => ({ ...s, content: false }));
+      }
+    },
+
+    async updateContent(section, value) {
+      const result = await patchAPI(`/api/v1/content/${section}`, value);
+      update(d => ({
+        ...d,
+        content: { ...d.content, [section]: result.data },
+      }));
+      return result;
+    },
+
+    // ============================================
+    // TEAM
+    // ============================================
+    async loadTeam() {
+      loadingStates.update(s => ({ ...s, team: true }));
+      try {
+        const team = await fetchFromAPI("/api/v1/content/team/members");
+        update(d => ({ ...d, team: Array.isArray(team) ? team : [] }));
+      } finally {
+        loadingStates.update(s => ({ ...s, team: false }));
+      }
+    },
+
+    async addTeamMember(member) {
+      const result = await postToAPI("/api/v1/content/team/members", member);
+      update(d => ({
+        ...d,
+        team: [...d.team, result.data],
+      }));
+      return result;
+    },
+
+    async updateTeamMember(id, updates) {
+      const result = await patchAPI(`/api/v1/content/team/members/${id}`, updates);
+      update(d => ({
+        ...d,
+        team: d.team.map(t => t.id === id ? { ...t, ...result.data } : t),
+      }));
+      return result;
+    },
+
+    async deleteTeamMember(id) {
+      await deleteFromAPI(`/api/v1/content/team/members/${id}`);
+      update(d => ({
+        ...d,
+        team: d.team.filter(t => t.id !== id),
       }));
     },
-    updateTeamMember(id, updates) {
-      update((data) => ({
-        ...data,
-        team: data.team.map((t) =>
-          t.id === id ? { ...t, ...updates } : t
-        ),
-      }));
-    },
-    deleteTeamMember(id) {
-      update((data) => ({
-        ...data,
-        team: data.team.filter((t) => t.id !== id),
-      }));
+
+    // ============================================
+    // REFRESH ALL DATA
+    // ============================================
+    async refresh() {
+      await this.init();
     },
   };
 }
 
 export const data = createDataStore();
 
-// Derived stores
+// ================================================================
+// DERIVED STORES
+// ================================================================
+
 export const unreadContacts = derived(data, ($data) =>
-  $data.contacts.filter((c) => c.status === "unread")
+  ($data.contacts || []).filter((c) => c.status === "unread")
 );
 
 export const activeServices = derived(data, ($data) =>
-  $data.services.filter((s) => s.active)
+  ($data.services || []).filter((s) => s.active)
 );
 
 export const teamByGroup = derived(data, ($data) => {
   const groups = {};
-  $data.team.forEach((member) => {
+  ($data.team || []).forEach((member) => {
     if (!groups[member.group]) groups[member.group] = [];
     groups[member.group].push(member);
   });
   return groups;
 });
+
+export const isLoading = derived(data, ($data) => $data.isLoading);
+export const dataError = derived(data, ($data) => $data.error);
+
+// Export loading states
+export { loadingStates };

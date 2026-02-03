@@ -6,6 +6,7 @@ import { db } from "../db";
 import { contacts, users } from "../db/schema";
 import { authMiddleware, optionalAuthMiddleware } from "../middleware/auth";
 import { managerOnly } from "../middleware/roles";
+import { sanitizeString, sanitizeEmail, escapeLikePattern } from "../utils/sanitize";
 
 const contactsRouter = new Hono();
 
@@ -22,12 +23,19 @@ const createContactSchema = z.object({
 contactsRouter.post("/", zValidator("json", createContactSchema), async (c) => {
   const data = c.req.valid("json");
 
+  // Sanitize all input data
+  const sanitizedData = {
+    name: sanitizeString(data.name),
+    email: sanitizeEmail(data.email),
+    subject: sanitizeString(data.subject),
+    message: sanitizeString(data.message),
+    source: sanitizeString(data.source || "landing-contact-form"),
+    status: "unread" as const,
+  };
+
   const [contact] = await db
     .insert(contacts)
-    .values({
-      ...data,
-      status: "unread",
-    })
+    .values(sanitizedData)
     .returning();
 
   return c.json(
@@ -70,11 +78,13 @@ contactsRouter.get("/", zValidator("query", listContactsSchema), async (c) => {
   }
 
   if (search) {
+    // Escape special characters to prevent SQL injection in LIKE patterns
+    const safeSearch = escapeLikePattern(search);
     conditions.push(
       or(
-        ilike(contacts.name, `%${search}%`),
-        ilike(contacts.email, `%${search}%`),
-        ilike(contacts.subject, `%${search}%`)
+        ilike(contacts.name, `%${safeSearch}%`),
+        ilike(contacts.email, `%${safeSearch}%`),
+        ilike(contacts.subject, `%${safeSearch}%`)
       )
     );
   }

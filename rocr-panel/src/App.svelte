@@ -13,6 +13,10 @@
   import Content from "./lib/pages/Content.svelte";
   import Team from "./lib/pages/Team.svelte";
   import Settings from "./lib/pages/Settings.svelte";
+  import Projects from "./lib/pages/Projects.svelte";
+  import Calendar from "./lib/pages/Calendar.svelte";
+  import Schedule from "./lib/pages/Schedule.svelte";
+  import TimeTracking from "./lib/pages/TimeTracking.svelte";
 
   const routes = {
     "/": Dashboard,
@@ -22,14 +26,32 @@
     "/content": Content,
     "/team": Team,
     "/settings": Settings,
+    "/projects": Projects,
+    "/calendar": Calendar,
+    "/schedule": Schedule,
+    "/time": TimeTracking,
   };
 
   let sidebarCollapsed = $state(false);
   let isInitializing = $state(true);
+  let isAuthenticated = $state(false);
+
+  // Subscribe to auth store for reactive updates
+  auth.subscribe((user) => {
+    isAuthenticated = !!user;
+  });
 
   onMount(async () => {
+    console.log("App initializing...");
     theme.init();
-    await auth.init();
+
+    try {
+      await auth.init();
+      console.log("Auth initialized, authenticated:", auth.isAuthenticated);
+    } catch (err) {
+      console.error("Auth init error:", err);
+    }
+
     isInitializing = false;
   });
 </script>
@@ -43,21 +65,19 @@
         <span class="logo-dot">.</span>
       </div>
       <div class="loading-spinner"></div>
+      <p class="loading-text">Loading...</p>
     </div>
   </div>
-{:else if !auth.isAuthenticated}
+{:else if !isAuthenticated}
   <!-- Login Page -->
   <Login />
 {:else}
   <!-- Authenticated App -->
-  <div
-    class="flex h-screen w-screen overflow-hidden"
-    style="background: var(--bg);"
-  >
+  <div class="app-container">
     <Sidebar bind:collapsed={sidebarCollapsed} />
-    <div class="flex flex-1 flex-col overflow-hidden">
+    <div class="main-content">
       <Header collapsed={sidebarCollapsed} />
-      <main class="flex-1 overflow-y-auto p-6" style="background: var(--bg);">
+      <main class="page-content">
         <Router {routes} />
       </main>
     </div>
@@ -108,6 +128,11 @@
     animation: spin 0.8s linear infinite;
   }
 
+  .loading-text {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.875rem;
+  }
+
   @keyframes spin {
     from {
       transform: rotate(0deg);
@@ -115,5 +140,27 @@
     to {
       transform: rotate(360deg);
     }
+  }
+
+  .app-container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  .main-content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .page-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    background: var(--bg);
   }
 </style>
