@@ -1,12 +1,6 @@
 <script>
   import { onMount } from "svelte";
-  import {
-    data,
-    unreadContacts,
-    activeServices,
-    isLoading,
-    dataError,
-  } from "../stores/data.js";
+  import { data, isLoading, dataError } from "../stores/data.js";
   import {
     formatDate,
     getStatusColor,
@@ -25,12 +19,16 @@
   import { push } from "svelte-spa-router";
 
   let initialized = $state(false);
+  let greeting = $state("");
 
   onMount(async () => {
-    console.log("Dashboard: Loading data from API...");
+    const hour = new Date().getHours();
+    if (hour < 12) greeting = "Günaydın";
+    else if (hour < 18) greeting = "İyi günler";
+    else greeting = "İyi akşamlar";
+
     await data.init();
     initialized = true;
-    console.log("Dashboard: Data loaded");
   });
 
   const stats = $derived([
@@ -38,30 +36,29 @@
       label: "Mesajlar",
       value: $data.contacts?.length || 0,
       icon: Mail,
-      color: "var(--color-primary)",
-      badge:
-        $unreadContacts.length > 0 ? `${$unreadContacts.length} yeni` : null,
+      color: "#3b82f6",
+      route: "/contacts",
     },
     {
       label: "Partnerler",
       value: $data.partners?.length || 0,
       icon: Handshake,
-      color: "var(--color-accent-purple)",
-      badge: null,
+      color: "#8b5cf6",
+      route: "/partners",
     },
     {
       label: "Servisler",
-      value: $activeServices.length,
+      value: $data.services?.length || 0,
       icon: Briefcase,
-      color: "var(--color-accent-orange)",
-      badge: null,
+      color: "#f59e0b",
+      route: "/services",
     },
     {
       label: "Ekip",
       value: $data.team?.length || 0,
       icon: Users,
-      color: "#10b981",
-      badge: null,
+      color: "#22c55e",
+      route: "/team",
     },
   ]);
 
@@ -75,221 +72,386 @@
   );
 
   async function handleRefresh() {
-    console.log("Dashboard: Refreshing data...");
     await data.refresh();
   }
 </script>
 
-<div class="space-y-6">
-  <div class="flex items-center justify-between">
+<div class="dashboard">
+  <!-- Header -->
+  <header class="header">
     <div>
-      <h1 class="text-2xl font-bold" style="color: var(--text);">Dashboard</h1>
-      <p class="mt-1 text-sm" style="color: var(--text-secondary);">
-        ROCR Digital yönetim paneline hoş geldiniz.
-      </p>
+      <h1 class="title">{greeting} 👋</h1>
+      <p class="subtitle">İşte bugünün özeti</p>
     </div>
-    <button
-      onclick={handleRefresh}
-      disabled={$isLoading}
-      class="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all disabled:opacity-50"
-      style="background: var(--surface); color: var(--text);"
-    >
-      <RefreshCw size={16} class={$isLoading ? "animate-spin" : ""} />
-      {$isLoading ? "Yükleniyor..." : "Yenile"}
+    <button class="refresh-btn" onclick={handleRefresh} disabled={$isLoading}>
+      <RefreshCw size={18} class={$isLoading ? "animate-spin" : ""} />
+      <span>{$isLoading ? "Yükleniyor..." : "Yenile"}</span>
     </button>
-  </div>
+  </header>
 
+  <!-- Error -->
   {#if $dataError}
     <Card>
-      <div class="flex items-center gap-3 text-red-500">
+      <div class="error">
         <AlertCircle size={20} />
-        <span>Veri yüklenirken hata oluştu: {$dataError}</span>
+        <span>{$dataError}</span>
       </div>
     </Card>
   {/if}
 
+  <!-- Loading -->
   {#if $isLoading && !initialized}
-    <!-- Loading skeleton -->
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="stats-grid">
       {#each Array(4) as _}
         <Card>
-          <div class="animate-pulse">
-            <div class="h-4 w-24 rounded bg-gray-700"></div>
-            <div class="mt-3 h-8 w-16 rounded bg-gray-700"></div>
-          </div>
+          <div class="skeleton"></div>
         </Card>
       {/each}
     </div>
   {:else}
-    <!-- Stats Grid -->
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <!-- Stats -->
+    <div class="stats-grid">
       {#each stats as stat}
-        <Card>
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm" style="color: var(--text-secondary);">
-                {stat.label}
-              </p>
-              <p class="mt-1 text-3xl font-bold" style="color: var(--text);">
-                {stat.value}
-              </p>
-              {#if stat.badge}
-                <span
-                  class="mt-2 inline-block rounded-full px-2 py-0.5 text-xs font-medium"
-                  style="background: {stat.color}20; color: {stat.color};"
-                >
-                  {stat.badge}
-                </span>
-              {/if}
+        <Card onclick={() => push(stat.route)}>
+          <div class="stat">
+            <div class="stat-info">
+              <span class="stat-label">{stat.label}</span>
+              <span class="stat-value">{stat.value}</span>
             </div>
             <div
-              class="flex h-12 w-12 items-center justify-center rounded-xl"
-              style="background: {stat.color}15;"
+              class="stat-icon"
+              style="background: {stat.color}20; color: {stat.color}"
             >
-              <stat.icon size={24} color={stat.color} />
+              <stat.icon size={24} />
             </div>
           </div>
         </Card>
       {/each}
     </div>
 
-    <!-- Recent Contacts -->
-    <Card>
-      <div class="mb-4 flex items-center justify-between">
-        <h3 class="text-lg font-semibold" style="color: var(--text);">
-          Son Mesajlar
-        </h3>
-        <button
-          onclick={() => push("/contacts")}
-          class="flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer"
-          style="color: var(--color-primary);"
-          onmouseenter={(e) =>
-            (e.currentTarget.style.background = "var(--hover)")}
-          onmouseleave={(e) =>
-            (e.currentTarget.style.background = "transparent")}
-        >
-          Tümünü Gör <ArrowRight size={14} />
+    <!-- Recent Messages -->
+    <Card padding={false}>
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Son Mesajlar</h2>
+          <p class="section-subtitle">En son gelen iletişim talepleri</p>
+        </div>
+        <button class="view-all-btn" onclick={() => push("/contacts")}>
+          <span>Tümünü Gör</span>
+          <ArrowRight size={16} />
         </button>
       </div>
-      <div class="space-y-3">
-        {#each recentContacts as contact}
-          <div
-            class="flex items-center justify-between rounded-xl p-3 transition-colors"
-            style="background: var(--hover);"
-          >
-            <div class="flex-1">
-              <div class="flex items-center gap-2">
-                <span class="text-sm font-medium" style="color: var(--text);"
-                  >{contact.name}</span
-                >
-                <span
-                  class="rounded-full px-2 py-0.5 text-[10px] font-medium {getStatusColor(
-                    contact.status,
-                  )}"
-                >
-                  {getStatusLabel(contact.status)}
-                </span>
-              </div>
-              <p class="mt-0.5 text-xs" style="color: var(--text-secondary);">
-                {contact.subject}
-              </p>
-            </div>
-            <span class="text-xs" style="color: var(--text-secondary);"
-              >{formatDate(contact.createdAt || contact.date)}</span
-            >
-          </div>
-        {/each}
+
+      <div class="messages-list">
         {#if recentContacts.length === 0}
-          <p
-            class="py-4 text-center text-sm"
-            style="color: var(--text-secondary);"
-          >
-            {$isLoading ? "Yükleniyor..." : "Henüz mesaj yok."}
-          </p>
+          <div class="empty">
+            <Mail size={40} />
+            <p>Henüz mesaj yok</p>
+          </div>
+        {:else}
+          {#each recentContacts as contact}
+            <button class="message-item" onclick={() => push("/contacts")}>
+              <div class="message-avatar">
+                {contact.name?.charAt(0)?.toUpperCase() || "?"}
+              </div>
+              <div class="message-content">
+                <div class="message-header">
+                  <span class="message-name">{contact.name}</span>
+                  <span class="message-status {getStatusColor(contact.status)}">
+                    {getStatusLabel(contact.status)}
+                  </span>
+                </div>
+                <p class="message-subject">{contact.subject}</p>
+              </div>
+              <span class="message-date">
+                {formatDate(contact.createdAt || contact.date)}
+              </span>
+            </button>
+          {/each}
         {/if}
       </div>
     </Card>
-
-    <!-- Quick Actions -->
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-      <Card
-        class="cursor-pointer hover:scale-[1.02] transition-transform"
-        onclick={() => push("/partners")}
-      >
-        <div class="flex items-center gap-3">
-          <div
-            class="flex h-10 w-10 items-center justify-center rounded-lg"
-            style="background: var(--color-accent-purple)15;"
-          >
-            <Handshake size={20} color="var(--color-accent-purple)" />
-          </div>
-          <div>
-            <p class="text-sm font-medium" style="color: var(--text);">
-              Yeni Partner
-            </p>
-            <p class="text-xs" style="color: var(--text-secondary);">
-              Partner ekle veya düzenle
-            </p>
-          </div>
-        </div>
-      </Card>
-      <Card
-        class="cursor-pointer hover:scale-[1.02] transition-transform"
-        onclick={() => push("/content")}
-      >
-        <div class="flex items-center gap-3">
-          <div
-            class="flex h-10 w-10 items-center justify-center rounded-lg"
-            style="background: var(--color-accent-orange)15;"
-          >
-            <Briefcase size={20} color="var(--color-accent-orange)" />
-          </div>
-          <div>
-            <p class="text-sm font-medium" style="color: var(--text);">
-              İçerik Düzenle
-            </p>
-            <p class="text-xs" style="color: var(--text-secondary);">
-              Web sitesi içeriğini güncelle
-            </p>
-          </div>
-        </div>
-      </Card>
-      <Card
-        class="cursor-pointer hover:scale-[1.02] transition-transform"
-        onclick={() => push("/team")}
-      >
-        <div class="flex items-center gap-3">
-          <div
-            class="flex h-10 w-10 items-center justify-center rounded-lg"
-            style="background: #10b98115;"
-          >
-            <Users size={20} color="#10b981" />
-          </div>
-          <div>
-            <p class="text-sm font-medium" style="color: var(--text);">
-              Ekip Yönetimi
-            </p>
-            <p class="text-xs" style="color: var(--text-secondary);">
-              Ekip üyelerini yönet
-            </p>
-          </div>
-        </div>
-      </Card>
-    </div>
   {/if}
 </div>
 
 <style>
-  .animate-spin {
-    animation: spin 1s linear infinite;
+  .dashboard {
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    max-width: 1400px;
   }
 
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .title {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    font-size: 15px;
+    color: var(--text-secondary);
+  }
+
+  .refresh-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .refresh-btn:hover:not(:disabled) {
+    background: var(--bg-tertiary);
+  }
+
+  .refresh-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  /* Error */
+  .error {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--danger);
+  }
+
+  /* Stats Grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+
+  @media (max-width: 1200px) {
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
     }
-    to {
-      transform: rotate(360deg);
+  }
+
+  @media (max-width: 640px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
     }
+  }
+
+  .stat {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .stat-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .stat-label {
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  .stat-value {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .stat-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Skeleton */
+  .skeleton {
+    height: 80px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  /* Section */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .section-subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .view-all-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--primary);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .view-all-btn:hover {
+    background: var(--primary-hover);
+  }
+
+  /* Messages */
+  .messages-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 64px;
+    color: var(--text-muted);
+  }
+
+  .message-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 24px;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s;
+    width: 100%;
+  }
+
+  .message-item:last-child {
+    border-bottom: none;
+  }
+
+  .message-item:hover {
+    background: var(--bg-tertiary);
+  }
+
+  .message-avatar {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .message-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .message-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+
+  .message-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .message-status {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 999px;
+    text-transform: uppercase;
+  }
+
+  .message-status.bg-yellow-100 {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .message-status.bg-green-100 {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  .message-status.bg-red-100 {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .message-status.bg-blue-100 {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  .message-subject {
+    font-size: 14px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .message-date {
+    font-size: 13px;
+    color: var(--text-muted);
+    flex-shrink: 0;
   }
 </style>

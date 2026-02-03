@@ -1,84 +1,47 @@
 <script>
-  import { auth } from "../stores/auth.js";
-  import { theme } from "../stores/theme.js";
-  import { onMount } from "svelte";
+  import { login, isLoading, authError } from "../stores/auth.js";
+  import { Zap, Eye, EyeOff } from "lucide-svelte";
 
   let email = $state("");
   let password = $state("");
-  let isLoading = $state(false);
   let showPassword = $state(false);
-  let error = $state(null);
-
-  onMount(() => {
-    theme.init();
-  });
 
   async function handleSubmit(e) {
     e.preventDefault();
-    isLoading = true;
-    error = null;
-
-    const success = await auth.login(email, password);
-
-    if (!success) {
-      error = auth.error || "Invalid email or password";
-    }
-
-    isLoading = false;
+    await login(email, password);
   }
 </script>
 
-<div class="login-container">
+<div class="login-page">
   <div class="login-card">
-    <!-- Logo -->
-    <div class="logo-section">
+    <div class="login-header">
       <div class="logo">
-        <span class="logo-text">ROCR</span>
-        <span class="logo-dot">.</span>
+        <Zap size={24} />
       </div>
-      <p class="logo-subtitle">Admin Panel</p>
+      <h1>ROCR Panel</h1>
+      <p>Yönetim paneline giriş yapın</p>
     </div>
 
-    <!-- Login Form -->
-    <form onsubmit={handleSubmit} class="login-form">
-      <h1 class="form-title">Welcome back</h1>
-      <p class="form-subtitle">Sign in to access your dashboard</p>
+    {#if $authError}
+      <div class="error">
+        {$authError}
+      </div>
+    {/if}
 
-      {#if error}
-        <div class="error-message">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <line x1="15" y1="9" x2="9" y2="15" />
-            <line x1="9" y1="9" x2="15" y2="15" />
-          </svg>
-          <span>{error}</span>
-        </div>
-      {/if}
-
-      <div class="input-group">
-        <label for="email">Email</label>
+    <form class="login-form" onsubmit={handleSubmit}>
+      <div class="form-group">
+        <label for="email">E-posta</label>
         <input
           id="email"
           type="email"
           bind:value={email}
-          placeholder="admin@rocrdigital.com"
+          placeholder="admin@example.com"
           required
-          disabled={isLoading}
         />
       </div>
 
-      <div class="input-group">
-        <label for="password">Password</label>
+      <div class="form-group">
+        <label for="password">Şifre</label>
         <div class="password-input">
           <input
             id="password"
@@ -86,7 +49,6 @@
             bind:value={password}
             placeholder="••••••••"
             required
-            disabled={isLoading}
           />
           <button
             type="button"
@@ -94,186 +56,115 @@
             onclick={() => (showPassword = !showPassword)}
           >
             {#if showPassword}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path
-                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-                />
-                <line x1="1" y1="1" x2="23" y2="23" />
-              </svg>
+              <EyeOff size={18} />
             {:else}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
+              <Eye size={18} />
             {/if}
           </button>
         </div>
       </div>
 
-      <button type="submit" class="submit-btn" disabled={isLoading}>
-        {#if isLoading}
-          <svg
-            class="spinner"
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <circle cx="12" cy="12" r="10" stroke-opacity="0.25" />
-            <path d="M12 2a10 10 0 0 1 10 10" stroke-opacity="0.75" />
-          </svg>
-          Signing in...
-        {:else}
-          Sign in
-        {/if}
+      <button type="submit" class="submit-btn" disabled={$isLoading}>
+        {$isLoading ? "Giriş yapılıyor..." : "Giriş Yap"}
       </button>
     </form>
-
-    <p class="footer-text">ROCR Digital © 2026</p>
   </div>
 </div>
 
 <style>
-  .login-container {
+  .login-page {
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1rem;
-    background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+    padding: 24px;
+    background: var(--bg);
   }
 
   .login-card {
     width: 100%;
     max-width: 400px;
-    padding: 2.5rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 1.5rem;
-    backdrop-filter: blur(20px);
+    padding: 40px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
   }
 
-  .logo-section {
+  .login-header {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 32px;
   }
 
   .logo {
-    display: inline-flex;
+    width: 56px;
+    height: 56px;
+    background: var(--primary);
+    border-radius: var(--radius);
+    display: flex;
     align-items: center;
-    font-size: 2rem;
+    justify-content: center;
+    color: white;
+    margin: 0 auto 20px;
+  }
+
+  .login-header h1 {
+    font-size: 24px;
     font-weight: 700;
-    letter-spacing: -0.03em;
+    color: var(--text);
+    margin-bottom: 8px;
   }
 
-  .logo-text {
-    color: #fff;
+  .login-header p {
+    font-size: 14px;
+    color: var(--text-secondary);
   }
 
-  .logo-dot {
-    color: #3b82f6;
-    font-size: 2.5rem;
-    line-height: 1;
-  }
-
-  .logo-subtitle {
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
+  .error {
+    padding: 12px 16px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: var(--radius-sm);
+    color: var(--danger);
+    font-size: 14px;
+    margin-bottom: 24px;
   }
 
   .login-form {
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: 20px;
   }
 
-  .form-title {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #fff;
-    margin: 0;
-    text-align: center;
-  }
-
-  .form-subtitle {
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 0.875rem;
-    margin: -0.5rem 0 0.5rem;
-    text-align: center;
-  }
-
-  .error-message {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.2);
-    border-radius: 0.75rem;
-    color: #f87171;
-    font-size: 0.875rem;
-  }
-
-  .input-group {
+  .form-group {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 8px;
   }
 
-  .input-group label {
-    font-size: 0.875rem;
+  .form-group label {
+    font-size: 14px;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--text);
   }
 
-  .input-group input {
+  .form-group input {
     width: 100%;
-    padding: 0.75rem 1rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 0.75rem;
-    color: #fff;
-    font-size: 0.9375rem;
-    transition: all 0.2s ease;
-  }
-
-  .input-group input::placeholder {
-    color: rgba(255, 255, 255, 0.3);
-  }
-
-  .input-group input:focus {
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
     outline: none;
-    border-color: #3b82f6;
-    background: rgba(59, 130, 246, 0.05);
+    transition: border-color 0.15s;
   }
 
-  .input-group input:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  .form-group input:focus {
+    border-color: var(--primary);
+  }
+
+  .form-group input::placeholder {
+    color: var(--text-muted);
   }
 
   .password-input {
@@ -281,70 +172,44 @@
   }
 
   .password-input input {
-    padding-right: 3rem;
+    padding-right: 48px;
   }
 
   .toggle-password {
     position: absolute;
-    right: 0.75rem;
+    right: 12px;
     top: 50%;
     transform: translateY(-50%);
-    padding: 0.25rem;
     background: none;
     border: none;
-    color: rgba(255, 255, 255, 0.4);
+    color: var(--text-muted);
     cursor: pointer;
-    transition: color 0.2s ease;
+    padding: 4px;
   }
 
   .toggle-password:hover {
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--text);
   }
 
   .submit-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 0.875rem 1.5rem;
-    background: #3b82f6;
+    width: 100%;
+    padding: 14px 24px;
+    background: var(--primary);
     border: none;
-    border-radius: 0.75rem;
-    color: #fff;
-    font-size: 0.9375rem;
+    border-radius: var(--radius-sm);
+    color: white;
+    font-size: 15px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
-    margin-top: 0.5rem;
+    transition: all 0.15s;
   }
 
   .submit-btn:hover:not(:disabled) {
-    background: #2563eb;
-    transform: translateY(-1px);
+    background: var(--primary-hover);
   }
 
   .submit-btn:disabled {
-    opacity: 0.7;
+    opacity: 0.6;
     cursor: not-allowed;
-  }
-
-  .spinner {
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  .footer-text {
-    text-align: center;
-    margin-top: 2rem;
-    color: rgba(255, 255, 255, 0.3);
-    font-size: 0.75rem;
   }
 </style>

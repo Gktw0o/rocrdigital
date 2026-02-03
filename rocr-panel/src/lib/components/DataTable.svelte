@@ -1,52 +1,76 @@
 <script>
-  let { columns = [], rows = [], onRowClick = null } = $props();
+  let { columns = [], data = [] } = $props();
 </script>
 
-<div class="overflow-x-auto rounded-2xl border" style="border-color: var(--border);">
-  <table class="w-full text-sm">
+<div class="table-wrapper">
+  <table class="table">
     <thead>
-      <tr style="background: var(--hover); border-bottom: 1px solid var(--border);">
+      <tr>
         {#each columns as col}
-          <th
-            class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider"
-            style="color: var(--text-secondary);"
-          >
-            {col.label}
-          </th>
+          <th>{col.label}</th>
         {/each}
       </tr>
     </thead>
     <tbody>
-      {#each rows as row, i}
-        <tr
-          class="transition-colors"
-          style="border-bottom: 1px solid var(--border); cursor: {onRowClick ? 'pointer' : 'default'};"
-          onclick={() => onRowClick?.(row)}
-          onmouseenter={(e) => e.currentTarget.style.background = 'var(--hover)'}
-          onmouseleave={(e) => e.currentTarget.style.background = 'transparent'}
-        >
-          {#each columns as col}
-            <td class="px-4 py-3" style="color: var(--text);">
-              {#if col.render}
-                {@html col.render(row)}
-              {:else}
-                {row[col.key] ?? ""}
-              {/if}
-            </td>
-          {/each}
-        </tr>
-      {/each}
-      {#if rows.length === 0}
+      {#if data.length === 0}
         <tr>
-          <td
-            colspan={columns.length}
-            class="px-4 py-8 text-center"
-            style="color: var(--text-secondary);"
-          >
-            Veri bulunamadi
-          </td>
+          <td colspan={columns.length} class="empty"> Veri bulunamadı </td>
         </tr>
+      {:else}
+        {#each data as row}
+          <tr>
+            {#each columns as col}
+              <td>{row[col.key] || "-"}</td>
+            {/each}
+          </tr>
+        {/each}
       {/if}
     </tbody>
   </table>
 </div>
+
+<style>
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    padding: 16px 20px;
+    text-align: left;
+  }
+
+  th {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    font-size: 14px;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  tr:hover td {
+    background: var(--bg-tertiary);
+  }
+
+  .empty {
+    text-align: center;
+    padding: 48px;
+    color: var(--text-muted);
+  }
+</style>

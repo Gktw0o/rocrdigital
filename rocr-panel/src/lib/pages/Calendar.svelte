@@ -1,563 +1,306 @@
 <script>
   import { onMount } from "svelte";
-  import { calendarApi } from "../stores/api.js";
-  import { auth } from "../stores/auth.js";
+  import Card from "../components/Card.svelte";
   import {
-    Plus,
+    Calendar as CalendarIcon,
     ChevronLeft,
     ChevronRight,
-    Calendar as CalendarIcon,
-    Clock,
-    MapPin,
-    Users,
-    Loader2,
+    Plus,
   } from "lucide-svelte";
+  import { calendarApi } from "../stores/api.js";
 
-  let events = $state([]);
-  let isLoading = $state(true);
-  let error = $state(null);
   let currentDate = $state(new Date());
-  let showCreateModal = $state(false);
-  let selectedEvent = $state(null);
-
-  // Calendar view
-  let view = $state("month"); // month, week
-
-  // New event form
-  let newEvent = $state({
-    title: "",
-    description: "",
-    eventType: "meeting",
-    visibility: "private",
-    startTime: "",
-    endTime: "",
-    isAllDay: false,
-    location: "",
-  });
-  let isCreating = $state(false);
-
-  const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
+  let events = $state([]);
+  let loading = $state(true);
 
   onMount(async () => {
     await loadEvents();
   });
 
   async function loadEvents() {
+    loading = true;
     try {
-      isLoading = true;
-      error = null;
-      const startOfMonth = new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth(),
-        1,
-      );
-      const endOfMonth = new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth() + 1,
-        0,
-      );
-
-      const response = await calendarApi.listEvents({
-        startDate: startOfMonth.toISOString(),
-        endDate: endOfMonth.toISOString(),
-      });
-      events = response.data || [];
-    } catch (err) {
-      error = err.message;
-    } finally {
-      isLoading = false;
+      events = await calendarApi.getAll();
+    } catch (e) {
+      console.error(e);
     }
+    loading = false;
   }
 
-  async function createEvent() {
-    try {
-      isCreating = true;
-      await calendarApi.createEvent({
-        ...newEvent,
-        startTime: new Date(newEvent.startTime).toISOString(),
-        endTime: new Date(newEvent.endTime).toISOString(),
-      });
-      showCreateModal = false;
-      resetNewEvent();
-      await loadEvents();
-    } catch (err) {
-      error = err.message;
-    } finally {
-      isCreating = false;
+  const currentMonth = $derived(currentDate.getMonth());
+  const currentYear = $derived(currentDate.getFullYear());
+
+  const monthName = $derived(
+    currentDate.toLocaleDateString("tr-TR", { month: "long", year: "numeric" }),
+  );
+
+  const daysInMonth = $derived(
+    new Date(currentYear, currentMonth + 1, 0).getDate(),
+  );
+
+  const firstDayOfMonth = $derived(
+    new Date(currentYear, currentMonth, 1).getDay(),
+  );
+
+  const days = $derived(() => {
+    const result = [];
+    const startDay = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
+
+    for (let i = 0; i < startDay; i++) {
+      result.push({ day: null, events: [] });
     }
-  }
 
-  function resetNewEvent() {
-    newEvent = {
-      title: "",
-      description: "",
-      eventType: "meeting",
-      visibility: "private",
-      startTime: "",
-      endTime: "",
-      isAllDay: false,
-      location: "",
-    };
-  }
+    for (let i = 1; i <= daysInMonth; i++) {
+      const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(i).padStart(2, "0")}`;
+      const dayEvents = events.filter((e) => e.date?.startsWith(dateStr));
+      result.push({ day: i, events: dayEvents });
+    }
 
-  function previousMonth() {
-    currentDate = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth() - 1,
-      1,
-    );
-    loadEvents();
+    return result;
+  });
+
+  function prevMonth() {
+    currentDate = new Date(currentYear, currentMonth - 1, 1);
   }
 
   function nextMonth() {
-    currentDate = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth() + 1,
-      1,
-    );
-    loadEvents();
+    currentDate = new Date(currentYear, currentMonth + 1, 1);
   }
 
-  function goToToday() {
+  function today() {
     currentDate = new Date();
-    loadEvents();
-  }
-
-  function getCalendarDays() {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-
-    const days = [];
-
-    // Previous month padding
-    for (let i = 0; i < firstDay.getDay(); i++) {
-      const d = new Date(year, month, -i);
-      days.unshift({ date: d, isCurrentMonth: false });
-    }
-
-    // Current month
-    for (let i = 1; i <= lastDay.getDate(); i++) {
-      days.push({ date: new Date(year, month, i), isCurrentMonth: true });
-    }
-
-    // Next month padding
-    const remaining = 42 - days.length;
-    for (let i = 1; i <= remaining; i++) {
-      days.push({ date: new Date(year, month + 1, i), isCurrentMonth: false });
-    }
-
-    return days;
-  }
-
-  function getEventsForDay(date) {
-    return events.filter((event) => {
-      const eventDate = new Date(event.startTime);
-      return eventDate.toDateString() === date.toDateString();
-    });
-  }
-
-  function isToday(date) {
-    return date.toDateString() === new Date().toDateString();
-  }
-
-  function getEventColor(type) {
-    const colors = {
-      meeting: "bg-blue-500",
-      deadline: "bg-red-500",
-      reminder: "bg-amber-500",
-      holiday: "bg-green-500",
-      other: "bg-purple-500",
-    };
-    return colors[type] || colors.other;
-  }
-
-  function formatTime(date) {
-    return new Date(date).toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-    });
   }
 </script>
 
-<div class="space-y-6">
-  <!-- Header -->
-  <div class="flex items-center justify-between">
+<div class="page">
+  <header class="page-header">
     <div>
-      <h1 class="text-2xl font-bold" style="color: var(--text-primary);">
-        Calendar
-      </h1>
-      <p class="text-sm mt-1" style="color: var(--text-secondary);">
-        Schedule meetings and track deadlines
-      </p>
+      <h1 class="page-title">Takvim</h1>
+      <p class="page-subtitle">Etkinlik ve randevu takvimi</p>
     </div>
-    <button
-      onclick={() => (showCreateModal = true)}
-      class="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition-colors"
-      style="background: var(--color-primary);"
-    >
-      <Plus size={18} />
-      New Event
-    </button>
-  </div>
+  </header>
 
-  <!-- Calendar Navigation -->
-  <div class="flex items-center justify-between">
-    <div class="flex items-center gap-4">
-      <button
-        onclick={goToToday}
-        class="px-4 py-2 rounded-lg border text-sm font-medium"
-        style="border-color: var(--border); color: var(--text-primary);"
-      >
-        Today
-      </button>
-      <div class="flex items-center gap-2">
-        <button
-          onclick={previousMonth}
-          class="p-2 rounded-lg hover:bg-white/5 transition-colors"
-          style="color: var(--text-secondary);"
-        >
+  <Card>
+    <div class="calendar-header">
+      <div class="calendar-nav">
+        <button class="nav-btn" onclick={prevMonth}>
           <ChevronLeft size={20} />
         </button>
-        <button
-          onclick={nextMonth}
-          class="p-2 rounded-lg hover:bg-white/5 transition-colors"
-          style="color: var(--text-secondary);"
-        >
+        <h2 class="month-title">{monthName}</h2>
+        <button class="nav-btn" onclick={nextMonth}>
           <ChevronRight size={20} />
         </button>
       </div>
-      <h2 class="text-xl font-semibold" style="color: var(--text-primary);">
-        {months[currentDate.getMonth()]}
-        {currentDate.getFullYear()}
-      </h2>
+      <button class="today-btn" onclick={today}>Bugün</button>
     </div>
-  </div>
 
-  <!-- Calendar Grid -->
-  {#if isLoading}
-    <div class="flex items-center justify-center py-12">
-      <Loader2
-        size={32}
-        class="animate-spin"
-        style="color: var(--color-primary);"
-      />
-    </div>
-  {:else}
-    <div
-      class="rounded-xl border overflow-hidden"
-      style="background: var(--bg-secondary); border-color: var(--border);"
-    >
-      <!-- Day Headers -->
-      <div
-        class="grid grid-cols-7 border-b"
-        style="border-color: var(--border);"
-      >
-        {#each daysOfWeek as day}
-          <div
-            class="p-3 text-center text-sm font-medium"
-            style="color: var(--text-secondary);"
-          >
-            {day}
-          </div>
+    <div class="calendar-grid">
+      <div class="weekdays">
+        {#each ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"] as day}
+          <div class="weekday">{day}</div>
         {/each}
       </div>
 
-      <!-- Calendar Days -->
-      <div class="grid grid-cols-7">
-        {#each getCalendarDays() as day, i}
-          {@const dayEvents = getEventsForDay(day.date)}
+      <div class="days">
+        {#each days() as { day, events: dayEvents }}
           <div
-            class="min-h-[120px] p-2 border-b border-r relative"
-            style="border-color: var(--border); {!day.isCurrentMonth
-              ? 'opacity: 0.4;'
-              : ''}"
+            class="day"
+            class:empty={!day}
+            class:today={day === new Date().getDate() &&
+              currentMonth === new Date().getMonth() &&
+              currentYear === new Date().getFullYear()}
           >
-            <span
-              class="inline-flex items-center justify-center w-7 h-7 rounded-full text-sm font-medium mb-1"
-              style={isToday(day.date)
-                ? "background: var(--color-primary); color: white;"
-                : `color: var(--text-primary);`}
-            >
-              {day.date.getDate()}
-            </span>
-
-            <!-- Events -->
-            <div class="space-y-1">
-              {#each dayEvents.slice(0, 3) as event}
-                <button
-                  onclick={() => (selectedEvent = event)}
-                  class="w-full text-left px-2 py-1 rounded text-xs font-medium text-white truncate {getEventColor(
-                    event.eventType,
-                  )}"
-                >
-                  {event.title}
-                </button>
-              {/each}
-              {#if dayEvents.length > 3}
-                <p class="text-xs px-2" style="color: var(--text-secondary);">
-                  +{dayEvents.length - 3} more
-                </p>
+            {#if day}
+              <span class="day-number">{day}</span>
+              {#if dayEvents.length > 0}
+                <div class="day-events">
+                  {#each dayEvents.slice(0, 2) as event}
+                    <div
+                      class="event"
+                      style="background: {event.color || '#3b82f6'}"
+                    >
+                      {event.title}
+                    </div>
+                  {/each}
+                  {#if dayEvents.length > 2}
+                    <div class="more">+{dayEvents.length - 2} daha</div>
+                  {/if}
+                </div>
               {/if}
-            </div>
+            {/if}
           </div>
         {/each}
       </div>
     </div>
-  {/if}
+  </Card>
 </div>
 
-<!-- Create Event Modal -->
-{#if showCreateModal}
-  <div
-    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-    onclick={() => (showCreateModal = false)}
-  >
-    <div
-      class="w-full max-w-md rounded-2xl p-6 border max-h-[90vh] overflow-y-auto"
-      style="background: var(--bg-secondary); border-color: var(--border);"
-      onclick={(e) => e.stopPropagation()}
-    >
-      <h2 class="text-xl font-bold mb-6" style="color: var(--text-primary);">
-        New Event
-      </h2>
+<style>
+  .page {
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
 
-      <form
-        onsubmit={(e) => {
-          e.preventDefault();
-          createEvent();
-        }}
-        class="space-y-4"
-      >
-        <div>
-          <label
-            class="block text-sm font-medium mb-1"
-            style="color: var(--text-secondary);">Title *</label
-          >
-          <input
-            type="text"
-            bind:value={newEvent.title}
-            required
-            class="w-full px-4 py-2 rounded-lg border text-sm"
-            style="background: var(--bg); border-color: var(--border); color: var(--text-primary);"
-            placeholder="e.g., Team Meeting"
-          />
-        </div>
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
 
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label
-              class="block text-sm font-medium mb-1"
-              style="color: var(--text-secondary);">Type</label
-            >
-            <select
-              bind:value={newEvent.eventType}
-              class="w-full px-4 py-2 rounded-lg border text-sm"
-              style="background: var(--bg); border-color: var(--border); color: var(--text-primary);"
-            >
-              <option value="meeting">Meeting</option>
-              <option value="deadline">Deadline</option>
-              <option value="reminder">Reminder</option>
-              <option value="holiday">Holiday</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div>
-            <label
-              class="block text-sm font-medium mb-1"
-              style="color: var(--text-secondary);">Visibility</label
-            >
-            <select
-              bind:value={newEvent.visibility}
-              class="w-full px-4 py-2 rounded-lg border text-sm"
-              style="background: var(--bg); border-color: var(--border); color: var(--text-primary);"
-            >
-              <option value="private">Private</option>
-              <option value="team">Team</option>
-              <option value="all">Everyone</option>
-            </select>
-          </div>
-        </div>
+  .page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
 
-        <div>
-          <label
-            class="block text-sm font-medium mb-1"
-            style="color: var(--text-secondary);">Start Time *</label
-          >
-          <input
-            type="datetime-local"
-            bind:value={newEvent.startTime}
-            required
-            class="w-full px-4 py-2 rounded-lg border text-sm"
-            style="background: var(--bg); border-color: var(--border); color: var(--text-primary);"
-          />
-        </div>
+  .page-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
 
-        <div>
-          <label
-            class="block text-sm font-medium mb-1"
-            style="color: var(--text-secondary);">End Time *</label
-          >
-          <input
-            type="datetime-local"
-            bind:value={newEvent.endTime}
-            required
-            class="w-full px-4 py-2 rounded-lg border text-sm"
-            style="background: var(--bg); border-color: var(--border); color: var(--text-primary);"
-          />
-        </div>
+  .calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
 
-        <div>
-          <label
-            class="block text-sm font-medium mb-1"
-            style="color: var(--text-secondary);">Location</label
-          >
-          <input
-            type="text"
-            bind:value={newEvent.location}
-            class="w-full px-4 py-2 rounded-lg border text-sm"
-            style="background: var(--bg); border-color: var(--border); color: var(--text-primary);"
-            placeholder="e.g., Meeting Room 1"
-          />
-        </div>
+  .calendar-nav {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
 
-        <div>
-          <label
-            class="block text-sm font-medium mb-1"
-            style="color: var(--text-secondary);">Description</label
-          >
-          <textarea
-            bind:value={newEvent.description}
-            rows="3"
-            class="w-full px-4 py-2 rounded-lg border text-sm resize-none"
-            style="background: var(--bg); border-color: var(--border); color: var(--text-primary);"
-            placeholder="Event details..."
-          ></textarea>
-        </div>
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
 
-        <div class="flex gap-3 pt-4">
-          <button
-            type="button"
-            onclick={() => (showCreateModal = false)}
-            class="flex-1 py-2 rounded-lg border text-sm font-medium"
-            style="border-color: var(--border); color: var(--text-secondary);"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={isCreating ||
-              !newEvent.title ||
-              !newEvent.startTime ||
-              !newEvent.endTime}
-            class="flex-1 py-2 rounded-lg text-white text-sm font-medium disabled:opacity-50"
-            style="background: var(--color-primary);"
-          >
-            {isCreating ? "Creating..." : "Create Event"}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-{/if}
+  .nav-btn:hover {
+    background: var(--bg-tertiary);
+  }
 
-<!-- Event Detail Modal -->
-{#if selectedEvent}
-  <div
-    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-    onclick={() => (selectedEvent = null)}
-  >
-    <div
-      class="w-full max-w-md rounded-2xl p-6 border"
-      style="background: var(--bg-secondary); border-color: var(--border);"
-      onclick={(e) => e.stopPropagation()}
-    >
-      <div class="flex items-start justify-between mb-4">
-        <div>
-          <span
-            class="inline-block px-2 py-1 rounded text-xs font-medium text-white mb-2 {getEventColor(
-              selectedEvent.eventType,
-            )}"
-          >
-            {selectedEvent.eventType}
-          </span>
-          <h2 class="text-xl font-bold" style="color: var(--text-primary);">
-            {selectedEvent.title}
-          </h2>
-        </div>
-      </div>
+  .month-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+    min-width: 180px;
+    text-align: center;
+    text-transform: capitalize;
+  }
 
-      <div class="space-y-3">
-        <div
-          class="flex items-center gap-3"
-          style="color: var(--text-secondary);"
-        >
-          <Clock size={16} />
-          <span class="text-sm">
-            {formatTime(selectedEvent.startTime)} - {formatTime(
-              selectedEvent.endTime,
-            )}
-          </span>
-        </div>
+  .today-btn {
+    padding: 10px 20px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
 
-        <div
-          class="flex items-center gap-3"
-          style="color: var(--text-secondary);"
-        >
-          <CalendarIcon size={16} />
-          <span class="text-sm">
-            {new Date(selectedEvent.startTime).toLocaleDateString("en-US", {
-              weekday: "long",
-              month: "long",
-              day: "numeric",
-              year: "numeric",
-            })}
-          </span>
-        </div>
+  .today-btn:hover {
+    background: var(--bg-tertiary);
+  }
 
-        {#if selectedEvent.location}
-          <div
-            class="flex items-center gap-3"
-            style="color: var(--text-secondary);"
-          >
-            <MapPin size={16} />
-            <span class="text-sm">{selectedEvent.location}</span>
-          </div>
-        {/if}
+  .calendar-grid {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
 
-        {#if selectedEvent.description}
-          <p
-            class="text-sm pt-3 border-t"
-            style="color: var(--text-secondary); border-color: var(--border);"
-          >
-            {selectedEvent.description}
-          </p>
-        {/if}
-      </div>
+  .weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border);
+  }
 
-      <button
-        onclick={() => (selectedEvent = null)}
-        class="w-full mt-6 py-2 rounded-lg border text-sm font-medium"
-        style="border-color: var(--border); color: var(--text-secondary);"
-      >
-        Close
-      </button>
-    </div>
-  </div>
-{/if}
+  .weekday {
+    padding: 12px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+  }
+
+  .day {
+    min-height: 100px;
+    padding: 8px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-secondary);
+  }
+
+  .day:nth-child(7n) {
+    border-right: none;
+  }
+
+  .day.empty {
+    background: var(--bg);
+  }
+
+  .day.today {
+    background: rgba(59, 130, 246, 0.05);
+  }
+
+  .day.today .day-number {
+    background: var(--primary);
+    color: white;
+  }
+
+  .day-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    border-radius: 50%;
+  }
+
+  .day-events {
+    margin-top: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .event {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: white;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .more {
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 2px 0;
+  }
+</style>

@@ -1,301 +1,435 @@
 <script>
   import { onMount } from "svelte";
-  import { data, loadingStates } from "../stores/data.js";
+  import { data, isLoading } from "../stores/data.js";
   import Card from "../components/Card.svelte";
   import Modal from "../components/Modal.svelte";
-  import { Plus, Pencil, Trash2, Tag, RefreshCw, Loader2 } from "lucide-svelte";
+  import {
+    Handshake,
+    Plus,
+    Search,
+    Edit,
+    Trash2,
+    ExternalLink,
+  } from "lucide-svelte";
+  import { partnersApi } from "../stores/api.js";
 
-  let editOpen = $state(false);
+  let searchQuery = $state("");
+  let showModal = $state(false);
   let editingPartner = $state(null);
-  let formData = $state({ name: "", description: "", tags: "" });
-  let saving = $state(false);
-  let error = $state(null);
+  let formData = $state({ name: "", logo: "", website: "", description: "" });
 
-  onMount(async () => {
-    if (!$data.partners || $data.partners.length === 0) {
-      await data.loadPartners();
-    }
-  });
+  onMount(() => data.init());
 
-  function openNew() {
-    editingPartner = null;
-    formData = { name: "", description: "", tags: "" };
-    error = null;
-    editOpen = true;
-  }
+  const filteredPartners = $derived(
+    ($data.partners || []).filter((p) =>
+      p.name?.toLowerCase().includes(searchQuery.toLowerCase()),
+    ),
+  );
 
-  function openEdit(partner) {
+  function openModal(partner = null) {
     editingPartner = partner;
-    formData = {
-      name: partner.name || "",
-      description: partner.description || "",
-      tags: Array.isArray(partner.tags)
-        ? partner.tags.join(", ")
-        : partner.tags || "",
-    };
-    error = null;
-    editOpen = true;
+    formData = partner
+      ? { ...partner }
+      : { name: "", logo: "", website: "", description: "" };
+    showModal = true;
   }
 
-  async function save() {
-    if (!formData.name.trim()) {
-      error = "Partner adı gerekli";
-      return;
+  async function handleSubmit() {
+    if (editingPartner) {
+      await partnersApi.update(editingPartner.id, formData);
+    } else {
+      await partnersApi.create(formData);
     }
-
-    const tags = formData.tags
-      .split(",")
-      .map((t) => t.trim())
-      .filter(Boolean);
-
-    saving = true;
-    error = null;
-
-    try {
-      if (editingPartner) {
-        await data.updatePartner(editingPartner.id, {
-          name: formData.name.trim(),
-          description: formData.description.trim(),
-          tags,
-        });
-      } else {
-        await data.addPartner({
-          name: formData.name.trim(),
-          description: formData.description.trim(),
-          tags,
-        });
-      }
-      editOpen = false;
-    } catch (err) {
-      console.error("Failed to save partner:", err);
-      error = err.message || "Partner kaydedilirken hata oluştu";
-    } finally {
-      saving = false;
-    }
+    await data.refresh();
+    showModal = false;
   }
 
-  async function remove(id) {
-    if (!confirm("Bu partneri silmek istediğinizden emin misiniz?")) return;
-
-    try {
-      await data.deletePartner(id);
-    } catch (err) {
-      console.error("Failed to delete partner:", err);
-      alert("Partner silinirken hata oluştu: " + err.message);
+  async function handleDelete(id) {
+    if (confirm("Bu partneri silmek istediğinize emin misiniz?")) {
+      await partnersApi.delete(id);
+      await data.refresh();
     }
-  }
-
-  async function handleRefresh() {
-    await data.loadPartners();
   }
 </script>
 
-<div class="space-y-6">
-  <div class="flex items-center justify-between">
+<div class="page">
+  <header class="page-header">
     <div>
-      <h1 class="text-2xl font-bold" style="color: var(--text);">Partnerler</h1>
-      <p class="mt-1 text-sm" style="color: var(--text-secondary);">
-        Partner ve vaka çalışmalarını yönetin ({$data.partners?.length || 0} partner)
-      </p>
+      <h1 class="page-title">Partnerler</h1>
+      <p class="page-subtitle">İş ortakları ve partnerler</p>
     </div>
-    <div class="flex items-center gap-2">
-      <button
-        onclick={handleRefresh}
-        disabled={$loadingStates.partners}
-        class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors disabled:opacity-50"
-        style="background: var(--surface); color: var(--text);"
-      >
-        <RefreshCw
-          size={16}
-          class={$loadingStates.partners ? "animate-spin" : ""}
-        />
-      </button>
-      <button
-        onclick={openNew}
-        class="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-white transition-colors cursor-pointer"
-        style="background: var(--color-primary);"
-      >
-        <Plus size={16} /> Yeni Partner
-      </button>
-    </div>
-  </div>
+    <button class="primary-btn" onclick={() => openModal()}>
+      <Plus size={18} />
+      <span>Yeni Partner</span>
+    </button>
+  </header>
 
-  <!-- Loading State -->
-  {#if $loadingStates.partners}
-    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {#each Array(6) as _}
-        <Card>
-          <div class="animate-pulse space-y-3">
-            <div class="h-5 w-32 rounded bg-gray-700"></div>
-            <div class="h-4 w-48 rounded bg-gray-700"></div>
-            <div class="flex gap-2">
-              <div class="h-5 w-20 rounded-full bg-gray-700"></div>
-              <div class="h-5 w-24 rounded-full bg-gray-700"></div>
-            </div>
-          </div>
-        </Card>
-      {/each}
-    </div>
-  {:else if !$data.partners || $data.partners.length === 0}
-    <Card>
-      <div class="py-12 text-center">
-        <p style="color: var(--text-secondary);">Henüz partner eklenmemiş.</p>
-        <button
-          onclick={openNew}
-          class="mt-4 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium"
-          style="background: var(--color-primary); color: white;"
-        >
-          <Plus size={16} /> İlk Partneri Ekle
-        </button>
+  <Card padding={false}>
+    <div class="toolbar">
+      <div class="search">
+        <Search size={18} />
+        <input type="text" placeholder="Ara..." bind:value={searchQuery} />
       </div>
-    </Card>
-  {:else}
-    <!-- Partner Grid -->
-    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {#each $data.partners as partner}
-        <Card class="hover:scale-[1.02] transition-transform">
-          <div class="space-y-3">
-            <div class="flex items-start justify-between">
-              <div>
-                <h3 class="text-base font-semibold" style="color: var(--text);">
-                  {partner.name}
-                </h3>
-                <p class="mt-1 text-sm" style="color: var(--text-secondary);">
-                  {partner.description || ""}
-                </p>
-              </div>
-              <div class="flex gap-1">
-                <button
-                  onclick={() => openEdit(partner)}
-                  class="rounded-lg p-1.5 transition-colors cursor-pointer"
-                  style="color: var(--text-secondary);"
-                  onmouseenter={(e) =>
-                    (e.currentTarget.style.background = "var(--hover)")}
-                  onmouseleave={(e) =>
-                    (e.currentTarget.style.background = "transparent")}
-                >
-                  <Pencil size={14} />
-                </button>
-                <button
-                  onclick={() => remove(partner.id)}
-                  class="rounded-lg p-1.5 text-red-400 transition-colors cursor-pointer"
-                  onmouseenter={(e) =>
-                    (e.currentTarget.style.background = "rgba(239,68,68,0.1)")}
-                  onmouseleave={(e) =>
-                    (e.currentTarget.style.background = "transparent")}
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            </div>
-            <div class="flex flex-wrap gap-1.5">
-              {#each Array.isArray(partner.tags) ? partner.tags : [] as tag}
-                <span
-                  class="flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium"
-                  style="background: var(--color-primary)15; color: var(--color-primary);"
-                >
-                  <Tag size={10} />
-                  {tag}
-                </span>
-              {/each}
-            </div>
-          </div>
-        </Card>
-      {/each}
     </div>
-  {/if}
 
-  <!-- Edit/Create Modal -->
-  <Modal
-    bind:open={editOpen}
-    title={editingPartner ? "Partner Düzenle" : "Yeni Partner"}
-  >
-    <div class="space-y-4">
-      {#if error}
-        <div class="rounded-lg bg-red-500/10 p-3 text-sm text-red-400">
-          {error}
-        </div>
-      {/if}
-
-      <label
-        class="block text-xs font-medium"
-        style="color: var(--text-secondary);"
-      >
-        <span class="mb-1 block">Partner Adı *</span>
-        <input
-          type="text"
-          bind:value={formData.name}
-          placeholder="Partner adı girin"
-          class="w-full rounded-lg border px-3 py-2 text-sm outline-none"
-          style="background: var(--bg); border-color: var(--border); color: var(--text);"
-        />
-      </label>
-      <label
-        class="block text-xs font-medium"
-        style="color: var(--text-secondary);"
-      >
-        <span class="mb-1 block">Açıklama</span>
-        <textarea
-          bind:value={formData.description}
-          placeholder="Partner açıklaması"
-          rows="3"
-          class="w-full rounded-lg border px-3 py-2 text-sm outline-none resize-none"
-          style="background: var(--bg); border-color: var(--border); color: var(--text);"
-        ></textarea>
-      </label>
-      <label
-        class="block text-xs font-medium"
-        style="color: var(--text-secondary);"
-      >
-        <span class="mb-1 block">Etiketler (virgül ile ayırın)</span>
-        <input
-          type="text"
-          bind:value={formData.tags}
-          placeholder="Web Experiences, AI & Automation"
-          class="w-full rounded-lg border px-3 py-2 text-sm outline-none"
-          style="background: var(--bg); border-color: var(--border); color: var(--text);"
-        />
-      </label>
-      <div class="flex justify-end gap-2 pt-2">
-        <button
-          onclick={() => (editOpen = false)}
-          disabled={saving}
-          class="rounded-lg px-4 py-2 text-sm font-medium transition-colors cursor-pointer disabled:opacity-50"
-          style="color: var(--text-secondary);"
-          onmouseenter={(e) =>
-            (e.currentTarget.style.background = "var(--hover)")}
-          onmouseleave={(e) =>
-            (e.currentTarget.style.background = "transparent")}
-        >
-          İptal
-        </button>
-        <button
-          onclick={save}
-          disabled={saving}
-          class="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors cursor-pointer disabled:opacity-50"
-          style="background: var(--color-primary);"
-        >
-          {#if saving}
-            <Loader2 size={14} class="animate-spin" />
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Partner</th>
+            <th>Website</th>
+            <th>Açıklama</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {#if $isLoading}
+            <tr>
+              <td colspan="4" class="loading">Yükleniyor...</td>
+            </tr>
+          {:else if filteredPartners.length === 0}
+            <tr>
+              <td colspan="4" class="empty">
+                <Handshake size={40} />
+                <p>Partner bulunamadı</p>
+              </td>
+            </tr>
+          {:else}
+            {#each filteredPartners as partner}
+              <tr>
+                <td>
+                  <div class="partner">
+                    <img
+                      src={partner.logo}
+                      alt={partner.name}
+                      class="partner-logo"
+                    />
+                    <span class="partner-name">{partner.name}</span>
+                  </div>
+                </td>
+                <td>
+                  {#if partner.website}
+                    <a
+                      href={partner.website}
+                      target="_blank"
+                      class="website-link"
+                    >
+                      <ExternalLink size={14} />
+                      <span>{partner.website}</span>
+                    </a>
+                  {:else}
+                    <span class="muted">-</span>
+                  {/if}
+                </td>
+                <td class="description">{partner.description || "-"}</td>
+                <td>
+                  <div class="actions">
+                    <button
+                      class="action-btn"
+                      onclick={() => openModal(partner)}
+                    >
+                      <Edit size={16} />
+                    </button>
+                    <button
+                      class="action-btn danger"
+                      onclick={() => handleDelete(partner.id)}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            {/each}
           {/if}
-          Kaydet
-        </button>
-      </div>
+        </tbody>
+      </table>
     </div>
-  </Modal>
+  </Card>
 </div>
 
+<Modal
+  bind:open={showModal}
+  title={editingPartner ? "Partner Düzenle" : "Yeni Partner"}
+>
+  <form
+    class="form"
+    onsubmit={(e) => {
+      e.preventDefault();
+      handleSubmit();
+    }}
+  >
+    <div class="form-group">
+      <label>Partner Adı</label>
+      <input type="text" bind:value={formData.name} required />
+    </div>
+    <div class="form-group">
+      <label>Logo URL</label>
+      <input type="url" bind:value={formData.logo} placeholder="https://..." />
+    </div>
+    <div class="form-group">
+      <label>Website</label>
+      <input
+        type="url"
+        bind:value={formData.website}
+        placeholder="https://..."
+      />
+    </div>
+    <div class="form-group">
+      <label>Açıklama</label>
+      <textarea bind:value={formData.description} rows="3"></textarea>
+    </div>
+    <div class="form-actions">
+      <button
+        type="button"
+        class="btn-secondary"
+        onclick={() => (showModal = false)}>İptal</button
+      >
+      <button type="submit" class="btn-primary">Kaydet</button>
+    </div>
+  </form>
+</Modal>
+
 <style>
-  .animate-spin {
-    animation: spin 1s linear infinite;
+  .page {
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
   }
 
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .page-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  .primary-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: var(--primary);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .primary-btn:hover {
+    background: var(--primary-hover);
+  }
+
+  .toolbar {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    max-width: 300px;
+    color: var(--text-muted);
+  }
+
+  .search input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    color: var(--text);
+    outline: none;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+  }
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th,
+  td {
+    padding: 16px 20px;
+    text-align: left;
+  }
+  th {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    font-size: 14px;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+  }
+  tr:hover td {
+    background: var(--bg-tertiary);
+  }
+  .loading,
+  .empty {
+    text-align: center;
+    padding: 64px;
+    color: var(--text-muted);
+  }
+  .empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .partner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .partner-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    object-fit: contain;
+    background: var(--bg-tertiary);
+  }
+
+  .partner-name {
+    font-weight: 500;
+  }
+
+  .website-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--primary);
+    text-decoration: none;
+    font-size: 13px;
+  }
+
+  .description {
+    max-width: 300px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .muted {
+    color: var(--text-muted);
+  }
+
+  .actions {
+    display: flex;
+    gap: 4px;
+  }
+
+  .action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .action-btn:hover {
+    background: var(--bg-tertiary);
+    color: var(--text);
+  }
+
+  .action-btn.danger:hover {
+    color: var(--danger);
+  }
+
+  /* Form */
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-group label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  .form-group input,
+  .form-group textarea {
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus {
+    border-color: var(--primary);
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 8px;
+  }
+
+  .btn-secondary,
+  .btn-primary {
+    padding: 12px 24px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-secondary {
+    background: var(--bg-tertiary);
+    color: var(--text);
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: var(--primary-hover);
   }
 </style>

@@ -1,371 +1,432 @@
 <script>
   import { onMount } from "svelte";
-  import { data, teamByGroup, loadingStates } from "../stores/data.js";
+  import { data, isLoading } from "../stores/data.js";
   import Card from "../components/Card.svelte";
   import Modal from "../components/Modal.svelte";
   import {
-    Plus,
-    Pencil,
-    Trash2,
     Users,
-    RefreshCw,
-    Loader2,
+    Plus,
+    Search,
+    Edit,
+    Trash2,
+    Mail,
+    Phone,
   } from "lucide-svelte";
+  import { teamApi } from "../stores/api.js";
 
-  let editOpen = $state(false);
+  let searchQuery = $state("");
+  let showModal = $state(false);
   let editingMember = $state(null);
   let formData = $state({
     name: "",
     role: "",
-    group: "Founders & Leadership",
-    description: "",
-  });
-  let saving = $state(false);
-  let error = $state(null);
-
-  const groups = [
-    "Founders & Leadership",
-    "Design Studio",
-    "Engineering Lab",
-    "Marketing",
-    "Operations",
-  ];
-
-  onMount(async () => {
-    if (!$data.team || $data.team.length === 0) {
-      await data.loadTeam();
-    }
+    email: "",
+    phone: "",
+    photo: "",
+    bio: "",
   });
 
-  function openNew() {
-    editingMember = null;
-    formData = {
-      name: "",
-      role: "",
-      group: "Founders & Leadership",
-      description: "",
-    };
-    error = null;
-    editOpen = true;
-  }
+  onMount(() => data.init());
 
-  function openEdit(member) {
+  const filteredTeam = $derived(
+    ($data.team || []).filter(
+      (m) =>
+        m.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        m.role?.toLowerCase().includes(searchQuery.toLowerCase()),
+    ),
+  );
+
+  function openModal(member = null) {
     editingMember = member;
-    formData = {
-      name: member.name || "",
-      role: member.role || "",
-      group: member.group || "Founders & Leadership",
-      description: member.description || "",
-    };
-    error = null;
-    editOpen = true;
+    formData = member
+      ? { ...member }
+      : { name: "", role: "", email: "", phone: "", photo: "", bio: "" };
+    showModal = true;
   }
 
-  async function save() {
-    if (!formData.name.trim()) {
-      error = "İsim gerekli";
-      return;
+  async function handleSubmit() {
+    if (editingMember) {
+      await teamApi.update(editingMember.id, formData);
+    } else {
+      await teamApi.create(formData);
     }
-
-    saving = true;
-    error = null;
-
-    try {
-      if (editingMember) {
-        await data.updateTeamMember(editingMember.id, {
-          name: formData.name.trim(),
-          role: formData.role.trim(),
-          group: formData.group,
-          description: formData.description.trim(),
-        });
-      } else {
-        await data.addTeamMember({
-          name: formData.name.trim(),
-          role: formData.role.trim(),
-          group: formData.group,
-          description: formData.description.trim(),
-        });
-      }
-      editOpen = false;
-    } catch (err) {
-      console.error("Failed to save team member:", err);
-      error = err.message || "Üye kaydedilirken hata oluştu";
-    } finally {
-      saving = false;
-    }
+    await data.refresh();
+    showModal = false;
   }
 
-  async function remove(id) {
-    if (!confirm("Bu üyeyi silmek istediğinizden emin misiniz?")) return;
-
-    try {
-      await data.deleteTeamMember(id);
-    } catch (err) {
-      console.error("Failed to delete team member:", err);
-      alert("Üye silinirken hata oluştu: " + err.message);
+  async function handleDelete(id) {
+    if (confirm("Bu ekip üyesini silmek istediğinize emin misiniz?")) {
+      await teamApi.delete(id);
+      await data.refresh();
     }
-  }
-
-  async function handleRefresh() {
-    await data.loadTeam();
   }
 </script>
 
-<div class="space-y-6">
-  <div class="flex items-center justify-between">
+<div class="page">
+  <header class="page-header">
     <div>
-      <h1 class="text-2xl font-bold" style="color: var(--text);">
-        Ekip Yönetimi
-      </h1>
-      <p class="mt-1 text-sm" style="color: var(--text-secondary);">
-        Ekip üyelerini yönetin ({$data.team?.length || 0} üye)
-      </p>
+      <h1 class="page-title">Ekip</h1>
+      <p class="page-subtitle">Ekip üyeleri</p>
     </div>
-    <div class="flex items-center gap-2">
-      <button
-        onclick={handleRefresh}
-        disabled={$loadingStates.team}
-        class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors disabled:opacity-50"
-        style="background: var(--surface); color: var(--text);"
-      >
-        <RefreshCw
-          size={16}
-          class={$loadingStates.team ? "animate-spin" : ""}
-        />
-      </button>
-      <button
-        onclick={openNew}
-        class="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-white transition-colors cursor-pointer"
-        style="background: var(--color-primary);"
-      >
-        <Plus size={16} /> Yeni Üye
-      </button>
-    </div>
-  </div>
+    <button class="primary-btn" onclick={() => openModal()}>
+      <Plus size={18} />
+      <span>Yeni Üye</span>
+    </button>
+  </header>
 
-  <!-- Loading State -->
-  {#if $loadingStates.team}
-    <div class="space-y-6">
-      {#each Array(2) as _}
-        <div class="space-y-3">
-          <div class="h-5 w-40 rounded bg-gray-700 animate-pulse"></div>
-          <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {#each Array(3) as _}
-              <Card>
-                <div class="animate-pulse flex gap-3">
-                  <div class="h-10 w-10 rounded-full bg-gray-700"></div>
-                  <div class="flex-1 space-y-2">
-                    <div class="h-4 w-24 rounded bg-gray-700"></div>
-                    <div class="h-3 w-32 rounded bg-gray-700"></div>
-                  </div>
-                </div>
-              </Card>
-            {/each}
-          </div>
-        </div>
+  <div class="team-grid">
+    {#if $isLoading}
+      {#each Array(4) as _}
+        <Card>
+          <div class="skeleton"></div>
+        </Card>
       {/each}
-    </div>
-  {:else if !$data.team || $data.team.length === 0}
-    <Card>
-      <div class="py-12 text-center">
-        <p style="color: var(--text-secondary);">
-          Henüz ekip üyesi eklenmemiş.
-        </p>
-        <button
-          onclick={openNew}
-          class="mt-4 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium"
-          style="background: var(--color-primary); color: white;"
-        >
-          <Plus size={16} /> İlk Üyeyi Ekle
-        </button>
+    {:else if filteredTeam.length === 0}
+      <div class="empty">
+        <Users size={48} />
+        <p>Ekip üyesi bulunamadı</p>
       </div>
-    </Card>
-  {:else}
-    <!-- Team by Groups -->
-    {#each groups as group}
-      {@const members = $teamByGroup[group] || []}
-      {#if members.length > 0}
-        <div>
-          <div class="mb-3 flex items-center gap-2">
-            <Users size={16} style="color: var(--color-primary);" />
-            <h2
-              class="text-sm font-semibold uppercase tracking-wider"
-              style="color: var(--text-secondary);"
-            >
-              {group}
-            </h2>
-            <span class="text-xs" style="color: var(--text-secondary);"
-              >({members.length})</span
-            >
-          </div>
-          <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {#each members as member}
-              <Card class="hover:scale-[1.02] transition-transform">
-                <div class="flex items-start justify-between">
-                  <div class="flex gap-3">
-                    <div
-                      class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
-                      style="background: var(--color-primary);"
-                    >
-                      {member.name?.charAt(0) || "?"}
-                    </div>
-                    <div>
-                      <h3
-                        class="text-sm font-semibold"
-                        style="color: var(--text);"
-                      >
-                        {member.name}
-                      </h3>
-                      <p class="text-xs" style="color: var(--color-primary);">
-                        {member.role || ""}
-                      </p>
-                      <p
-                        class="mt-1 text-xs"
-                        style="color: var(--text-secondary);"
-                      >
-                        {member.description || ""}
-                      </p>
-                    </div>
-                  </div>
-                  <div class="flex gap-1">
-                    <button
-                      onclick={() => openEdit(member)}
-                      class="rounded-lg p-1 transition-colors cursor-pointer"
-                      style="color: var(--text-secondary);"
-                      onmouseenter={(e) =>
-                        (e.currentTarget.style.background = "var(--hover)")}
-                      onmouseleave={(e) =>
-                        (e.currentTarget.style.background = "transparent")}
-                    >
-                      <Pencil size={12} />
-                    </button>
-                    <button
-                      onclick={() => remove(member.id)}
-                      class="rounded-lg p-1 text-red-400 transition-colors cursor-pointer"
-                      onmouseenter={(e) =>
-                        (e.currentTarget.style.background =
-                          "rgba(239,68,68,0.1)")}
-                      onmouseleave={(e) =>
-                        (e.currentTarget.style.background = "transparent")}
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  </div>
+    {:else}
+      {#each filteredTeam as member}
+        <Card>
+          <div class="member-card">
+            <div class="member-header">
+              {#if member.photo}
+                <img
+                  src={member.photo}
+                  alt={member.name}
+                  class="member-photo"
+                />
+              {:else}
+                <div class="member-avatar">
+                  {member.name?.charAt(0)?.toUpperCase() || "?"}
                 </div>
-              </Card>
-            {/each}
+              {/if}
+              <div>
+                <h3 class="member-name">{member.name}</h3>
+                <p class="member-role">{member.role}</p>
+              </div>
+            </div>
+
+            {#if member.bio}
+              <p class="member-bio">{member.bio}</p>
+            {/if}
+
+            <div class="member-contact">
+              {#if member.email}
+                <a href="mailto:{member.email}" class="contact-link">
+                  <Mail size={14} />
+                  <span>{member.email}</span>
+                </a>
+              {/if}
+              {#if member.phone}
+                <a href="tel:{member.phone}" class="contact-link">
+                  <Phone size={14} />
+                  <span>{member.phone}</span>
+                </a>
+              {/if}
+            </div>
+
+            <div class="member-actions">
+              <button class="action-btn" onclick={() => openModal(member)}>
+                <Edit size={16} />
+              </button>
+              <button
+                class="action-btn danger"
+                onclick={() => handleDelete(member.id)}
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
           </div>
-        </div>
-      {/if}
-    {/each}
-  {/if}
-
-  <!-- Edit/Create Modal -->
-  <Modal
-    bind:open={editOpen}
-    title={editingMember ? "Üye Düzenle" : "Yeni Üye"}
-  >
-    <div class="space-y-4">
-      {#if error}
-        <div class="rounded-lg bg-red-500/10 p-3 text-sm text-red-400">
-          {error}
-        </div>
-      {/if}
-
-      <label
-        class="block text-xs font-medium"
-        style="color: var(--text-secondary);"
-      >
-        <span class="mb-1 block">İsim *</span>
-        <input
-          type="text"
-          bind:value={formData.name}
-          placeholder="İsim soyisim"
-          class="w-full rounded-lg border px-3 py-2 text-sm outline-none"
-          style="background: var(--bg); border-color: var(--border); color: var(--text);"
-        />
-      </label>
-      <label
-        class="block text-xs font-medium"
-        style="color: var(--text-secondary);"
-      >
-        <span class="mb-1 block">Rol</span>
-        <input
-          type="text"
-          bind:value={formData.role}
-          placeholder="Ünvan / Rol"
-          class="w-full rounded-lg border px-3 py-2 text-sm outline-none"
-          style="background: var(--bg); border-color: var(--border); color: var(--text);"
-        />
-      </label>
-      <label
-        class="block text-xs font-medium"
-        style="color: var(--text-secondary);"
-      >
-        <span class="mb-1 block">Grup</span>
-        <select
-          bind:value={formData.group}
-          class="w-full rounded-lg border px-3 py-2 text-sm outline-none cursor-pointer"
-          style="background: var(--bg); border-color: var(--border); color: var(--text);"
-        >
-          {#each groups as group}
-            <option value={group}>{group}</option>
-          {/each}
-        </select>
-      </label>
-      <label
-        class="block text-xs font-medium"
-        style="color: var(--text-secondary);"
-      >
-        <span class="mb-1 block">Açıklama</span>
-        <textarea
-          bind:value={formData.description}
-          rows="3"
-          placeholder="Kısa açıklama"
-          class="w-full rounded-lg border px-3 py-2 text-sm outline-none resize-none"
-          style="background: var(--bg); border-color: var(--border); color: var(--text);"
-        ></textarea>
-      </label>
-      <div class="flex justify-end gap-2 pt-2">
-        <button
-          onclick={() => (editOpen = false)}
-          disabled={saving}
-          class="rounded-lg px-4 py-2 text-sm font-medium transition-colors cursor-pointer disabled:opacity-50"
-          style="color: var(--text-secondary);"
-          onmouseenter={(e) =>
-            (e.currentTarget.style.background = "var(--hover)")}
-          onmouseleave={(e) =>
-            (e.currentTarget.style.background = "transparent")}
-        >
-          İptal
-        </button>
-        <button
-          onclick={save}
-          disabled={saving}
-          class="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors cursor-pointer disabled:opacity-50"
-          style="background: var(--color-primary);"
-        >
-          {#if saving}
-            <Loader2 size={14} class="animate-spin" />
-          {/if}
-          Kaydet
-        </button>
-      </div>
-    </div>
-  </Modal>
+        </Card>
+      {/each}
+    {/if}
+  </div>
 </div>
 
+<Modal bind:open={showModal} title={editingMember ? "Üye Düzenle" : "Yeni Üye"}>
+  <form
+    class="form"
+    onsubmit={(e) => {
+      e.preventDefault();
+      handleSubmit();
+    }}
+  >
+    <div class="form-row">
+      <div class="form-group">
+        <label>Ad Soyad</label>
+        <input type="text" bind:value={formData.name} required />
+      </div>
+      <div class="form-group">
+        <label>Pozisyon</label>
+        <input type="text" bind:value={formData.role} required />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>E-posta</label>
+        <input type="email" bind:value={formData.email} />
+      </div>
+      <div class="form-group">
+        <label>Telefon</label>
+        <input type="tel" bind:value={formData.phone} />
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Fotoğraf URL</label>
+      <input type="url" bind:value={formData.photo} placeholder="https://..." />
+    </div>
+    <div class="form-group">
+      <label>Biyografi</label>
+      <textarea bind:value={formData.bio} rows="3"></textarea>
+    </div>
+    <div class="form-actions">
+      <button
+        type="button"
+        class="btn-secondary"
+        onclick={() => (showModal = false)}>İptal</button
+      >
+      <button type="submit" class="btn-primary">Kaydet</button>
+    </div>
+  </form>
+</Modal>
+
 <style>
-  .animate-spin {
-    animation: spin 1s linear infinite;
+  .page {
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
   }
 
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .page-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  .primary-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: var(--primary);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  @media (max-width: 1024px) {
+    .team-grid {
+      grid-template-columns: repeat(2, 1fr);
     }
-    to {
-      transform: rotate(360deg);
+  }
+
+  @media (max-width: 640px) {
+    .team-grid {
+      grid-template-columns: 1fr;
     }
+  }
+
+  .member-card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .member-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .member-photo {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .member-avatar {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 600;
+    color: white;
+  }
+
+  .member-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .member-role {
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  .member-bio {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .member-contact {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .contact-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-decoration: none;
+  }
+
+  .contact-link:hover {
+    color: var(--primary);
+  }
+
+  .member-actions {
+    display: flex;
+    gap: 8px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .action-btn:hover {
+    color: var(--text);
+  }
+  .action-btn.danger:hover {
+    color: var(--danger);
+  }
+
+  .empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 64px;
+    color: var(--text-muted);
+    grid-column: 1 / -1;
+  }
+
+  .skeleton {
+    height: 200px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  /* Form */
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-group label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  .form-group input,
+  .form-group textarea {
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus {
+    border-color: var(--primary);
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 8px;
+  }
+
+  .btn-secondary,
+  .btn-primary {
+    padding: 12px 24px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .btn-secondary {
+    background: var(--bg-tertiary);
+    color: var(--text);
+  }
+  .btn-primary {
+    background: var(--primary);
+    color: white;
   }
 </style>

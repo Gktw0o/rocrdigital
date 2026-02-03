@@ -2,6 +2,9 @@
   import { link, location } from "svelte-spa-router";
   import {
     LayoutDashboard,
+    FolderKanban,
+    Calendar,
+    CalendarDays,
     Mail,
     Handshake,
     Briefcase,
@@ -10,112 +13,222 @@
     Settings,
     ChevronLeft,
     ChevronRight,
-    FolderKanban,
-    Calendar,
-    Clock,
-    CalendarDays,
+    Zap,
   } from "lucide-svelte";
 
   let { collapsed = $bindable(false) } = $props();
 
   const navItems = [
     { path: "/", label: "Dashboard", icon: LayoutDashboard },
-    { path: "/projects", label: "Projects", icon: FolderKanban },
-    { path: "/calendar", label: "Calendar", icon: Calendar },
-    { path: "/schedule", label: "Schedule", icon: CalendarDays },
-    { path: "/time", label: "Time Tracking", icon: Clock },
-    { type: "divider" },
-    { path: "/contacts", label: "Messages", icon: Mail },
-    { path: "/partners", label: "Partners", icon: Handshake },
-    { path: "/services", label: "Services", icon: Briefcase },
-    { path: "/content", label: "Content", icon: FileText },
-    { path: "/team", label: "Team", icon: Users },
-    { type: "divider" },
-    { path: "/settings", label: "Settings", icon: Settings },
+    { path: "/projects", label: "Projeler", icon: FolderKanban },
+    { path: "/calendar", label: "Takvim", icon: Calendar },
+    { path: "/schedule", label: "Program", icon: CalendarDays },
+    { separator: true, label: "İçerik" },
+    { path: "/contacts", label: "Mesajlar", icon: Mail },
+    { path: "/partners", label: "Partnerler", icon: Handshake },
+    { path: "/services", label: "Servisler", icon: Briefcase },
+    { path: "/content", label: "İçerik", icon: FileText },
+    { path: "/team", label: "Ekip", icon: Users },
+    { separator: true, label: "Sistem" },
+    { path: "/settings", label: "Ayarlar", icon: Settings },
   ];
 
-  function isActive(itemPath, currentLocation) {
-    if (itemPath === "/") return currentLocation === "/";
-    return currentLocation.startsWith(itemPath);
+  function isActive(path) {
+    if (path === "/") return $location === "/";
+    return $location.startsWith(path);
   }
 </script>
 
-<aside
-  class="flex flex-col border-r transition-all duration-300"
-  style="background: var(--sidebar-bg); border-color: var(--border); width: {collapsed
-    ? '68px'
-    : '240px'};"
->
+<aside class="sidebar" class:collapsed>
   <!-- Logo -->
-  <div
-    class="flex h-16 items-center border-b px-4"
-    style="border-color: var(--border);"
-  >
+  <div class="logo">
     {#if !collapsed}
-      <span class="text-lg font-bold" style="color: var(--text);"
-        >ROCR Panel</span
-      >
+      <div class="logo-icon">
+        <Zap size={20} />
+      </div>
+      <span class="logo-text">ROCR Panel</span>
     {:else}
-      <span class="text-lg font-bold mx-auto" style="color: var(--text);"
-        >R</span
-      >
+      <div class="logo-icon small">
+        <Zap size={16} />
+      </div>
     {/if}
   </div>
 
   <!-- Navigation -->
-  <nav class="flex-1 py-4 overflow-y-auto">
+  <nav class="nav">
     {#each navItems as item}
-      {#if item.type === "divider"}
-        {#if !collapsed}
-          <div
-            class="mx-4 my-3 border-t"
-            style="border-color: var(--border);"
-          ></div>
-        {:else}
-          <div
-            class="mx-2 my-3 border-t"
-            style="border-color: var(--border);"
-          ></div>
-        {/if}
+      {#if item.separator}
+        <div class="separator">
+          {#if !collapsed}
+            <span>{item.label}</span>
+          {/if}
+        </div>
       {:else}
-        {@const active = isActive(item.path, $location)}
         <a
           href={item.path}
           use:link
-          class="flex items-center gap-3 mx-2 mb-1 rounded-lg px-3 py-2.5 text-sm transition-all duration-150"
-          style="
-            background: {active ? 'var(--color-primary)' : 'transparent'};
-            color: {active ? '#ffffff' : 'var(--text-secondary)'};
-          "
-          onmouseenter={(e) => {
-            if (!active) e.currentTarget.style.background = "var(--hover)";
-          }}
-          onmouseleave={(e) => {
-            if (!active) e.currentTarget.style.background = "transparent";
-          }}
+          class="nav-item"
+          class:active={isActive(item.path)}
         >
-          <item.icon size={20} />
+          <span class="nav-icon">
+            <item.icon size={20} />
+          </span>
           {#if !collapsed}
-            <span class="font-medium">{item.label}</span>
+            <span class="nav-label">{item.label}</span>
           {/if}
         </a>
       {/if}
     {/each}
   </nav>
 
-  <!-- Collapse toggle -->
-  <button
-    onclick={() => (collapsed = !collapsed)}
-    class="flex items-center justify-center border-t py-3 transition-colors cursor-pointer"
-    style="border-color: var(--border); color: var(--text-secondary);"
-    onmouseenter={(e) => (e.currentTarget.style.background = "var(--hover)")}
-    onmouseleave={(e) => (e.currentTarget.style.background = "transparent")}
-  >
-    {#if collapsed}
-      <ChevronRight size={18} />
-    {:else}
-      <ChevronLeft size={18} />
-      <span class="ml-2 text-sm">Collapse</span>
-    {/if}
-  </button>
+  <!-- Collapse Button -->
+  <div class="collapse-area">
+    <button class="collapse-btn" onclick={() => (collapsed = !collapsed)}>
+      {#if collapsed}
+        <ChevronRight size={18} />
+      {:else}
+        <ChevronLeft size={18} />
+        <span>Daralt</span>
+      {/if}
+    </button>
+  </div>
 </aside>
+
+<style>
+  .sidebar {
+    width: 260px;
+    height: 100%;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    transition: width 0.2s ease;
+  }
+
+  .sidebar.collapsed {
+    width: 72px;
+  }
+
+  /* Logo */
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 72px;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--primary);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .logo-icon.small {
+    width: 32px;
+    height: 32px;
+    margin: auto;
+  }
+
+  .logo-text {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* Navigation */
+  .nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .separator {
+    padding: 16px 12px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+  }
+
+  .sidebar.collapsed .separator {
+    padding: 12px 0;
+    border-top: 1px solid var(--border);
+    margin: 8px 12px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    color: var(--text-secondary);
+    transition: all 0.15s;
+  }
+
+  .nav-item:hover {
+    background: var(--bg-tertiary);
+    color: var(--text);
+  }
+
+  .nav-item.active {
+    background: var(--primary);
+    color: white;
+  }
+
+  .nav-icon {
+    display: flex;
+    flex-shrink: 0;
+  }
+
+  .nav-label {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .sidebar.collapsed .nav-item {
+    justify-content: center;
+    padding: 14px;
+  }
+
+  /* Collapse */
+  .collapse-area {
+    padding: 16px 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .collapse-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .collapse-btn:hover {
+    background: var(--bg-tertiary);
+    color: var(--text);
+  }
+</style>

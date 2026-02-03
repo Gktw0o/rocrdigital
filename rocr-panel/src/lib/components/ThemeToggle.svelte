@@ -4,16 +4,34 @@
 </script>
 
 <button
+  class="theme-btn"
   onclick={() => theme.toggle()}
-  class="rounded-lg p-2 transition-colors cursor-pointer"
-  style="color: var(--text-secondary);"
-  onmouseenter={(e) => e.currentTarget.style.background = 'var(--hover)'}
-  onmouseleave={(e) => e.currentTarget.style.background = 'transparent'}
-  aria-label="Tema degistir"
+  aria-label="Temayı Değiştir"
 >
   {#if $theme === "dark"}
-    <Sun size={18} />
+    <Sun size={20} />
   {:else}
-    <Moon size={18} />
+    <Moon size={20} />
   {/if}
 </button>
+
+<style>
+  .theme-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .theme-btn:hover {
+    background: var(--bg-tertiary);
+    color: var(--text);
+  }
+</style>
